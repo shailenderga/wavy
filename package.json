@@ -1,0 +1,13 @@
+{
+  "name": "react-mysql-chat-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Full-Stack Real-Time Chat App with React, MySQL, and Tailwind CSS",
+  "scripts": {
+    "server": "npm --prefix server start",
+    "server:dev": "npm --prefix server run dev",
+    "client": "npm --prefix client run dev",
+    "client:build": "npm --prefix client run build",
+    "test-db": "node server/test-db.js"
+  }
+}
