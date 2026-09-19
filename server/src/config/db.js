@@ -20,13 +20,27 @@ let pool = null;
 
 async function initializeDatabase() {
   try {
-    // 1. Connect without specific database to ensure target DB exists
-    const connection = await mysql.createConnection(dbConfig);
+    console.log(`🔍 Connecting to DB at ${dbConfig.host}:${dbConfig.port} (DB: ${dbName}, SSL: ${Boolean(dbConfig.ssl)})...`);
 
-    await connection.query(`CREATE DATABASE IF NOT EXISTS \`${dbName}\`;`);
-    await connection.query(`USE \`${dbName}\`;`);
+    let connection;
+    try {
+      // 1. Try connecting directly to dbName (standard for cloud MySQL like TiDB/Aiven)
+      connection = await mysql.createConnection({
+        ...dbConfig,
+        database: dbName,
+        connectTimeout: 20000
+      });
+    } catch (directErr) {
+      // 2. If DB doesn't exist, try connecting to root to create it
+      connection = await mysql.createConnection({
+        ...dbConfig,
+        connectTimeout: 20000
+      });
+      await connection.query(`CREATE DATABASE IF NOT EXISTS \`${dbName}\`;`);
+      await connection.query(`USE \`${dbName}\`;`);
+    }
 
-    // 2. Run schema migrations in this database
+    // Run schema migrations in this database
     const schemaPath = path.join(__dirname, '../../schema.sql');
     if (fs.existsSync(schemaPath)) {
       const schemaSql = fs.readFileSync(schemaPath, 'utf8');
@@ -42,7 +56,8 @@ async function initializeDatabase() {
       database: dbName,
       waitForConnections: true,
       connectionLimit: 10,
-      queueLimit: 0
+      queueLimit: 0,
+      connectTimeout: 20000
     });
 
     return pool;
