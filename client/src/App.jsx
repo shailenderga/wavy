@@ -552,6 +552,7 @@ function ChatDashboard() {
               setShowStoryViewerModal(false);
               setSelectedStoryGroup(null);
             }}
+            onStoryDeleted={refreshStories}
           />
 
           {/* Audio & Video Calling Modal */}

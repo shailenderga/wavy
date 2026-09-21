@@ -176,6 +176,12 @@ async function getStoryViewers(req, res) {
     );
 
     return res.json({ viewers });
+  } catch (err) {
+    console.error('getStoryViewers error:', err);
+    return res.status(500).json({ error: 'Failed to get story viewers: ' + err.message });
+  }
+}
+
 // Delete a story (only by owner)
 async function deleteStory(req, res) {
   try {
@@ -192,6 +198,13 @@ async function deleteStory(req, res) {
       return res.status(403).json({ error: 'Unauthorized to delete this story' });
     }
 
+    // Safely delete story views first (in case cascading is missing on remote DB)
+    try {
+      await pool.query('DELETE FROM story_views WHERE story_id = ?', [storyId]);
+    } catch (viewErr) {
+      console.warn('Could not clean up story_views:', viewErr.message);
+    }
+
     await pool.query('DELETE FROM stories WHERE id = ?', [storyId]);
 
     const io = req.app.get('io');
@@ -205,7 +218,7 @@ async function deleteStory(req, res) {
     return res.json({ success: true, message: 'Story deleted successfully' });
   } catch (err) {
     console.error('deleteStory error:', err);
-    return res.status(500).json({ error: 'Failed to delete story' });
+    return res.status(500).json({ error: 'Failed to delete story: ' + err.message });
   }
 }
 

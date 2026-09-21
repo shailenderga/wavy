@@ -14,7 +14,7 @@ import {
   Trash2
 } from 'lucide-react';
 
-export default function StoryViewerModal({ storyGroup, isOpen, onClose }) {
+export default function StoryViewerModal({ storyGroup, isOpen, onClose, onStoryDeleted }) {
   const { user } = useAuth();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [progress, setProgress] = useState(0);
@@ -135,6 +135,7 @@ export default function StoryViewerModal({ storyGroup, isOpen, onClose }) {
 
     try {
       await storyAPI.deleteStory(currentStory.id);
+      if (onStoryDeleted) onStoryDeleted(currentStory.id);
       if (stories.length > 1) {
         if (currentIndex >= stories.length - 1) {
           setCurrentIndex((prev) => Math.max(0, prev - 1));
