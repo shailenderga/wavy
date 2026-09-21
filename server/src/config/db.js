@@ -83,7 +83,7 @@ async function initializeDatabase() {
 
     return pool;
   } catch (err) {
-    console.error('❌ Database initialization error:', err.message);
+    console.error('❌ Database initialization error:', err.message || err);
     throw err;
   }
 }
