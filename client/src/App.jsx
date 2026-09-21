@@ -227,10 +227,19 @@ function ChatDashboard() {
       });
     };
 
+    const handleStoryViewed = (data) => {
+      if (data.authorId === user.id) {
+        storyAPI.getStories().then((res) => {
+          setMyStories(res.data.myStories || []);
+        });
+      }
+    };
+
     socket.on('new_message', handleNewMessage);
     socket.on('contact_request_received', handleContactRequestReceived);
     socket.on('contact_request_updated', handleContactRequestUpdated);
     socket.on('new_story_posted', handleNewStoryPosted);
+    socket.on('story_viewed', handleStoryViewed);
     socket.on('incoming_call', handleIncomingCall);
     socket.on('call_accepted', handleCallAccepted);
     socket.on('call_rejected', handleCallRejected);
@@ -243,6 +252,7 @@ function ChatDashboard() {
       socket.off('contact_request_received', handleContactRequestReceived);
       socket.off('contact_request_updated', handleContactRequestUpdated);
       socket.off('new_story_posted', handleNewStoryPosted);
+      socket.off('story_viewed', handleStoryViewed);
       socket.off('incoming_call', handleIncomingCall);
       socket.off('call_accepted', handleCallAccepted);
       socket.off('call_rejected', handleCallRejected);

@@ -254,7 +254,11 @@ export default function Sidebar({
                     </h4>
                     <p className="text-xs text-wa-muted truncate mt-0.5">
                       {myStories.length > 0
-                        ? `${myStories.length} update${myStories.length > 1 ? 's' : ''} • Tap to view`
+                        ? `${myStories.length} update${myStories.length > 1 ? 's' : ''}${
+                            myStories.reduce((acc, s) => acc + (s.view_count || 0), 0) > 0
+                              ? ` • ${myStories.reduce((acc, s) => acc + (s.view_count || 0), 0)} view${myStories.reduce((acc, s) => acc + (s.view_count || 0), 0) > 1 ? 's' : ''}`
+                              : ' • Tap to view'
+                          }`
                         : 'Tap to add status update'}
                     </p>
                   </div>

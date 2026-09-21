@@ -51,6 +51,8 @@ export const contactAPI = {
 export const storyAPI = {
   getStories: () => api.get('/stories'),
   createStory: (data) => api.post('/stories', data),
+  recordView: (storyId) => api.post(`/stories/${storyId}/view`),
+  getViewers: (storyId) => api.get(`/stories/${storyId}/viewers`),
 };
 
 export default api;

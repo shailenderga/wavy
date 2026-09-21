@@ -60,10 +60,11 @@ async function getStories(req, res) {
     const currentUserId = req.user.id;
     const pool = getPool();
 
-    // 1. My active stories
+    // 1. My active stories (with view_count)
     const [myStories] = await pool.query(
       `SELECT s.id, s.user_id, s.content, s.background_color, s.media_url, s.media_type, s.caption, s.created_at,
-              u.username, u.avatar_url
+              u.username, u.avatar_url,
+              (SELECT COUNT(*) FROM story_views sv WHERE sv.story_id = s.id) AS view_count
        FROM stories s
        JOIN users u ON s.user_id = u.id
        WHERE s.user_id = ? AND s.created_at >= NOW() - INTERVAL 24 HOUR
@@ -112,7 +113,78 @@ async function getStories(req, res) {
   }
 }
 
+// Record a view for a story
+async function recordStoryView(req, res) {
+  try {
+    const storyId = req.params.id;
+    const viewerId = req.user.id;
+    const pool = getPool();
+
+    const [storyRows] = await pool.query('SELECT user_id FROM stories WHERE id = ?', [storyId]);
+    if (storyRows.length === 0) {
+      return res.status(404).json({ error: 'Story not found' });
+    }
+
+    // Only record if viewer is not the story creator
+    if (storyRows[0].user_id !== viewerId) {
+      await pool.query(
+        'INSERT IGNORE INTO story_views (story_id, viewer_id) VALUES (?, ?)',
+        [storyId, viewerId]
+      );
+
+      const io = req.app.get('io');
+      if (io) {
+        io.emit('story_viewed', {
+          storyId: parseInt(storyId, 10),
+          authorId: storyRows[0].user_id,
+          viewerId,
+          viewerUsername: req.user.username
+        });
+      }
+    }
+
+    return res.json({ success: true });
+  } catch (err) {
+    console.error('recordStoryView error:', err);
+    return res.status(500).json({ error: 'Failed to record story view' });
+  }
+}
+
+// Get list of viewers for a story (only accessible by story owner)
+async function getStoryViewers(req, res) {
+  try {
+    const storyId = req.params.id;
+    const currentUserId = req.user.id;
+    const pool = getPool();
+
+    const [storyRows] = await pool.query('SELECT user_id FROM stories WHERE id = ?', [storyId]);
+    if (storyRows.length === 0) {
+      return res.status(404).json({ error: 'Story not found' });
+    }
+
+    if (storyRows[0].user_id !== currentUserId) {
+      return res.status(403).json({ error: 'Only the story owner can see viewers' });
+    }
+
+    const [viewers] = await pool.query(
+      `SELECT u.id, u.username, u.avatar_url, sv.viewed_at
+       FROM story_views sv
+       JOIN users u ON sv.viewer_id = u.id
+       WHERE sv.story_id = ?
+       ORDER BY sv.viewed_at DESC`,
+      [storyId]
+    );
+
+    return res.json({ viewers });
+  } catch (err) {
+    console.error('getStoryViewers error:', err);
+    return res.status(500).json({ error: 'Failed to fetch story viewers' });
+  }
+}
+
 module.exports = {
   createStory,
-  getStories
+  getStories,
+  recordStoryView,
+  getStoryViewers
 };
