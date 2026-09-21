@@ -143,14 +143,21 @@ async function updateProfile(req, res) {
     const { username, email, avatar_url, about } = req.body;
     const pool = getPool();
 
-    // Check if username is already taken by another user
-    if (username) {
+    // Fetch current user first
+    const [currentRows] = await pool.query('SELECT * FROM users WHERE id = ?', [userId]);
+    if (currentRows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    const current = currentRows[0];
+
+    // Check if username is being changed and if it is already taken by another user
+    if (username && username.trim().toLowerCase() !== (current.username || '').toLowerCase()) {
       const trimmedName = username.trim();
       if (!trimmedName) {
         return res.status(400).json({ error: 'Username cannot be empty' });
       }
       const [existingUser] = await pool.query(
-        'SELECT id FROM users WHERE username = ? AND id != ?',
+        'SELECT id FROM users WHERE LOWER(username) = LOWER(?) AND id != ?',
         [trimmedName, userId]
       );
       if (existingUser.length > 0) {
@@ -158,14 +165,14 @@ async function updateProfile(req, res) {
       }
     }
 
-    // Check if email is already taken by another user
-    if (email) {
+    // Check if email is being changed and if it is already taken by another user
+    if (email && email.trim().toLowerCase() !== (current.email || '').toLowerCase()) {
       const trimmedEmail = email.trim();
       if (!trimmedEmail) {
         return res.status(400).json({ error: 'Email cannot be empty' });
       }
       const [existingEmail] = await pool.query(
-        'SELECT id FROM users WHERE email = ? AND id != ?',
+        'SELECT id FROM users WHERE LOWER(email) = LOWER(?) AND id != ?',
         [trimmedEmail, userId]
       );
       if (existingEmail.length > 0) {
@@ -173,17 +180,10 @@ async function updateProfile(req, res) {
       }
     }
 
-    // Fetch current user
-    const [currentRows] = await pool.query('SELECT * FROM users WHERE id = ?', [userId]);
-    if (currentRows.length === 0) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-    const current = currentRows[0];
-
     const newUsername = username !== undefined ? username.trim() : current.username;
     const newEmail = email !== undefined ? email.trim() : current.email;
     const newAvatar = avatar_url !== undefined ? avatar_url : current.avatar_url;
-    const newAbout = about !== undefined ? about.trim() : (current.about || 'Hey there! I am using WhatsApp.');
+    const newAbout = about !== undefined ? about.trim() : (current.about || 'Hey there! I am using Wavy.');
 
     await pool.query(
       'UPDATE users SET username = ?, email = ?, avatar_url = ?, about = ? WHERE id = ?',

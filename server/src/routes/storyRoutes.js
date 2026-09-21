@@ -4,7 +4,8 @@ const {
   createStory,
   getStories,
   recordStoryView,
-  getStoryViewers
+  getStoryViewers,
+  deleteStory
 } = require('../controllers/storyController');
 const { authenticateToken } = require('../middleware/authMiddleware');
 
@@ -14,5 +15,6 @@ router.post('/', createStory);
 router.get('/', getStories);
 router.post('/:id/view', recordStoryView);
 router.get('/:id/viewers', getStoryViewers);
+router.delete('/:id', deleteStory);
 
 module.exports = router;

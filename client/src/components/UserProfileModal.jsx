@@ -169,7 +169,7 @@ export default function UserProfileModal({
             <div className="min-w-0">
               <p className="text-[11px] text-wa-muted uppercase font-medium">About</p>
               <p className="text-xs text-wa-text font-normal truncate">
-                {profileUser.about || 'Hey there! I am using WhatsApp.'}
+                {profileUser.about || 'Hey there! I am using Wavy.'}
               </p>
             </div>
           </div>

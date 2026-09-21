@@ -37,6 +37,7 @@ export const roomAPI = {
 export const messageAPI = {
   getRoomMessages: (roomId) => api.get(`/messages/${roomId}`),
   sendMessage: (roomId, content) => api.post(`/messages/${roomId}`, { content }),
+  deleteMessage: (messageId) => api.delete(`/messages/${messageId}`),
 };
 
 export const contactAPI = {
@@ -53,6 +54,7 @@ export const storyAPI = {
   createStory: (data) => api.post('/stories', data),
   recordView: (storyId) => api.post(`/stories/${storyId}/view`),
   getViewers: (storyId) => api.get(`/stories/${storyId}/viewers`),
+  deleteStory: (storyId) => api.delete(`/stories/${storyId}`),
 };
 
 export default api;

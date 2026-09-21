@@ -19,12 +19,90 @@ import {
   Square
 } from 'lucide-react';
 
-const QUICK_EMOJIS = ['👍', '❤️', '🔥', '😂', '🎉', '🙏', '💯'];
+const EMOJI_CATEGORIES = [
+  {
+    name: 'Smileys',
+    icon: '😀',
+    emojis: [
+      '😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '🥲', '🥹',
+      '☺️', '😊', '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘',
+      '😗', '😙', '😚', '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐',
+      '🤓', '😎', '🥸', '🤩', '🥳', '😏', '😒', '😞', '😔', '😟',
+      '😕', '🙁', '☹️', '😣', '😖', '😫', '😩', '🥺', '😢', '😭',
+      '😮‍💨', '😤', '😠', '😡', '🤬', '🤯', '😳', '🥵', '🥶', '😱',
+      '😨', '😰', '😥', '😓', '🫣', '🤗', '🫡', '🤔', '🫢', '🤭',
+      '🤫', '🤥', '😶', '😐', '😑', '😬', '🫠', '🙄', '😯', '😦',
+      '😧', '😮', '😲', '🥱', '😴', '🤤', '😪', '😵', '😵‍💫', '🤐',
+      '🥴', '🤢', '🤮', '🤧', '😷', '🤒', '🤕', '🤑', '🤠', '😈',
+      '👿', '👹', '👺', '🤡', '💩', '👻', '💀', '☠️', '👽', '👾', '🤖', '🎃'
+    ]
+  },
+  {
+    name: 'Gestures',
+    icon: '👋',
+    emojis: [
+      '👋', '🤚', '🖐️', '✋', '🖖', '🫱', '🫲', '🫳', '🫴', '👌',
+      '🤌', '🤏', '✌️', '🤞', '🫰', '🤟', '🤘', '🤙', '👈', '👉',
+      '👆', '🖕', '👇', '☝️', '🫵', '👍', '👎', '✊', '👊', '🤛',
+      '🤜', '👏', '🙌', '🫶', '👐', '🤲', '🤝', '🙏', '✍️', '💅',
+      '🤳', '💪', '🦾', '🦿', '🦵', '🦶', '👂', '🦻', '👃', '🫀',
+      '🫁', '🧠', '👶', '👧', '🧒', '👦', '👩', '🧑', '👨', '👵', '🧓', '👴'
+    ]
+  },
+  {
+    name: 'Hearts & Vibes',
+    icon: '❤️',
+    emojis: [
+      '❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💔',
+      '❤️‍🔥', '❤️‍🩹', '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝',
+      '💟', '💯', '🔥', '✨', '⚡️', '💥', '💫', '⭐️', '🌟', '🎉',
+      '🎊', '🎈', '🎁', '🏆', '🥇', '🥈', '🥉', '👑', '💎', '🔑'
+    ]
+  },
+  {
+    name: 'Animals & Nature',
+    icon: '🐶',
+    emojis: [
+      '🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐻‍❄️', '🐨',
+      '🐯', '🦁', '🐮', '🐷', '🐽', '🐸', '🐵', '🙈', '🙉', '🙊',
+      '🐒', '🐔', '🐧', '🐦', '🐤', '🐣', '🐥', '🦆', '🦅', '🦉',
+      '🦇', '🐺', '🐗', '🐴', '🦄', '🐝', '🐛', '🦋', '🐌', '🐞',
+      '🐜', '🦟', '🐢', '🐍', '🦎', '🐙', '🦑', '🦐', '🦞', '🦀',
+      '🐡', '🐠', '🐟', '🐬', '🐳', '🐋', '🦈', '🐊', '🐆', '🐅'
+    ]
+  },
+  {
+    name: 'Food & Drink',
+    icon: '🍔',
+    emojis: [
+      '🍏', '🍎', '🍐', '🍊', '🍋', '🍌', '🍉', '🍇', '🍓', '🫐',
+      '🍈', '🍒', '🍑', '🥭', '🍍', '🥥', '🥝', '🍅', '🥑', '🥦',
+      '🌽', '🥕', '🥔', '🥐', '🍞', '🥖', '🥨', '🧀', '🥚', '🍳',
+      '🥞', '🧇', '🥓', '🥩', '🍗', '🍖', '🌭', '🍔', '🍟', '🍕',
+      '🥪', '🌮', '🌯', '🥗', '🍝', '🍜', '🍲', '🍛', '🍣', '🍱',
+      '🥟', '🍤', '🍙', '🍚', '🍦', '🍧', '🍨', '🍩', '🍪', '🎂',
+      '🍰', '🧁', '🥧', '🍫', '🍬', '🍭', '🍮', '🍯', '🍿', '☕️',
+      '🍵', '🧃', '🥤', '🧋', '🍺', '🍻', '🥂', '🍷', '🥃', '🍸'
+    ]
+  },
+  {
+    name: 'Activities',
+    icon: '⚽',
+    emojis: [
+      '⚽️', '🏀', '🏈', '⚾️', '🥎', '🎾', '🏐', '🏉', '🥏', '🎱',
+      '🏓', '🏸', '🏒', '🏏', '⛳️', '🏹', '🎣', '🥊', '🥋', '🛹',
+      '🛼', '⛷️', '🏂', '🏋️', '🤸', '🚴', '🏊', '🧗', '🏆', '🥇',
+      '🎫', '🎪', '🎭', '🎨', '🎬', '🎤', '🎧', '🎼', '🎹', '🥁',
+      '🎷', '🎺', '🎸', '🎻', '🎲', '♟️', '🎯', '🎳', '🎮', '🎰'
+    ]
+  }
+];
 
 export default function ChatArea({
   activeRoom,
   messages,
   onSendMessage,
+  onDeleteMessage,
   onBack,
   onViewProfile,
   onStartCall
@@ -33,6 +111,7 @@ export default function ChatArea({
   const { socket, onlineUserIds } = useSocket();
   const [inputText, setInputText] = useState('');
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [activeEmojiTab, setActiveEmojiTab] = useState(0);
   const [typingUsers, setTypingUsers] = useState(new Set());
   const [isRecording, setIsRecording] = useState(false);
   const [recordDuration, setRecordDuration] = useState(0);
@@ -197,7 +276,7 @@ export default function ChatArea({
         <div className="w-20 h-20 rounded-full bg-wa-bg/80 flex items-center justify-center mb-6 text-wa-muted shadow-lg ring-1 ring-white/5">
           <MessageSquareOff className="w-10 h-10 text-wa-green/80" />
         </div>
-        <h3 className="text-2xl font-light text-wa-text tracking-wide">WhatsApp Web</h3>
+        <h3 className="text-2xl font-light text-wa-text tracking-wide">Wavy Web</h3>
         <p className="text-xs text-wa-muted max-w-sm text-center mt-2 leading-relaxed">
           Send and receive messages in real-time. Select a chat from the sidebar to get started.
         </p>
@@ -248,63 +327,59 @@ export default function ChatArea({
                 <img
                   src={otherUser?.avatar_url || 'https://api.dicebear.com/7.x/avataaars/svg?seed=User'}
                   alt={otherUser?.username}
-                  className="w-10 h-10 rounded-full bg-slate-800 object-cover ring-1 ring-white/10 group-hover:ring-emerald-500/50 shadow-sm transition-all duration-200"
+                  className="w-10 h-10 rounded-full object-cover bg-slate-800 ring-1 ring-white/10 shadow"
                 />
               ) : (
-                <div className="w-10 h-10 rounded-full bg-wa-panel ring-1 ring-white/10 flex items-center justify-center text-wa-green shadow-sm">
+                <div className="w-10 h-10 rounded-full bg-wa-green/20 text-wa-green flex items-center justify-center font-bold text-base shadow ring-1 ring-wa-green/30">
                   <Hash className="w-5 h-5" />
                 </div>
               )}
-              {isDirect && isOtherUserOnline && (
-                <span className="absolute bottom-0 right-0 flex h-3.5 w-3.5 items-center justify-center">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60" />
-                  <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-wa-header shadow-sm" />
-                </span>
+              {isOtherUserOnline && (
+                <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-wa-header rounded-full shadow" />
               )}
             </div>
 
-            <div className="truncate">
-              <h2 className="font-semibold text-wa-text text-sm sm:text-base truncate group-hover:text-emerald-400 transition-colors">
-                {isDirect ? otherUser?.username : `#${activeRoom.name}`}
-              </h2>
-              <p className="text-[11px] sm:text-xs text-wa-muted truncate">
-                {isDirect
-                  ? isOtherUserOnline ? 'online' : 'offline • click for info'
-                  : activeRoom.description || 'tap here for channel info'}
+            <div className="min-w-0">
+              <h3 className="text-sm font-semibold text-wa-text truncate flex items-center space-x-1.5">
+                <span>{isDirect ? otherUser?.username : activeRoom.name}</span>
+              </h3>
+              <p className="text-[11px] text-wa-muted truncate">
+                {isDirect ? (
+                  isOtherUserOnline ? (
+                    <span className="text-emerald-400 font-medium">online</span>
+                  ) : (
+                    <span>offline</span>
+                  )
+                ) : (
+                  <span>Channel</span>
+                )}
               </p>
             </div>
           </div>
         </div>
 
-        {/* Top Right Calling & Action Icons */}
-        <div className="flex items-center space-x-1 sm:space-x-2 text-wa-muted">
-          {isDirect && otherUser && (
+        {/* Top Right Action Icons */}
+        <div className="flex items-center space-x-1 text-wa-muted flex-shrink-0">
+          {isDirect && (
             <>
-              {/* Video Call */}
               <button
-                onClick={() => onStartCall && onStartCall(otherUser, 'video')}
-                title="Video Call"
+                onClick={() => onStartCall && otherUser && onStartCall(otherUser, 'audio')}
                 className="p-2 hover:text-wa-text hover:bg-wa-hover rounded-full transition"
-              >
-                <Video className="w-5 h-5" />
-              </button>
-
-              {/* Audio Call */}
-              <button
-                onClick={() => onStartCall && onStartCall(otherUser, 'audio')}
                 title="Audio Call"
-                className="p-2 hover:text-wa-text hover:bg-wa-hover rounded-full transition"
               >
-                <Phone className="w-5 h-5" />
+                <Phone className="w-5 h-5 text-emerald-400" />
+              </button>
+              <button
+                onClick={() => onStartCall && otherUser && onStartCall(otherUser, 'video')}
+                className="p-2 hover:text-wa-text hover:bg-wa-hover rounded-full transition"
+                title="Video Call"
+              >
+                <Video className="w-5 h-5 text-emerald-400" />
               </button>
             </>
           )}
-
-          <button className="p-2 hover:text-wa-text hover:bg-wa-hover rounded-full transition">
+          <button className="p-2 hover:text-wa-text hover:bg-wa-hover rounded-full transition" title="Search in chat">
             <Search className="w-5 h-5" />
-          </button>
-          <button className="p-2 hover:text-wa-text hover:bg-wa-hover rounded-full transition">
-            <MoreVertical className="w-5 h-5" />
           </button>
         </div>
       </header>
@@ -323,6 +398,7 @@ export default function ChatArea({
             message={msg}
             isSelf={msg.sender_id === user?.id}
             isGroup={!isDirect}
+            onDeleteMessage={onDeleteMessage}
           />
         ))}
 
@@ -335,19 +411,49 @@ export default function ChatArea({
         <div ref={messagesEndRef} />
       </div>
 
-      {/* WhatsApp Emoji Quick Bar */}
+      {/* Full Categorized Emoji Picker Card */}
       {showEmojiPicker && (
-        <div className="px-4 py-2 bg-wa-panel border-t border-wa-border flex items-center gap-2 overflow-x-auto">
-          {QUICK_EMOJIS.map((emoji) => (
+        <div className="mx-2 sm:mx-4 mb-2 bg-[#202c33]/98 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl p-3 z-30 animate-fadeIn flex flex-col max-h-[290px]">
+          {/* Category Tabs */}
+          <div className="flex items-center justify-between pb-2 border-b border-white/10 overflow-x-auto gap-1 scrollbar-none">
+            {EMOJI_CATEGORIES.map((cat, idx) => (
+              <button
+                key={cat.name}
+                type="button"
+                onClick={() => setActiveEmojiTab(idx)}
+                className={`px-2.5 py-1 rounded-lg text-xs font-medium flex items-center space-x-1.5 transition whitespace-nowrap ${
+                  activeEmojiTab === idx
+                    ? 'bg-wa-green text-white shadow-sm'
+                    : 'text-slate-400 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <span>{cat.icon}</span>
+                <span className="hidden sm:inline">{cat.name}</span>
+              </button>
+            ))}
             <button
-              key={emoji}
               type="button"
-              onClick={() => handleAddEmoji(emoji)}
-              className="text-lg hover:scale-125 transition transform p-1.5 rounded-lg hover:bg-wa-hover"
+              onClick={() => setShowEmojiPicker(false)}
+              className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 ml-auto flex-shrink-0"
+              title="Close emoji picker"
             >
-              {emoji}
+              <X className="w-4 h-4" />
             </button>
-          ))}
+          </div>
+
+          {/* Emoji Grid */}
+          <div className="flex-1 overflow-y-auto pt-2 grid grid-cols-8 sm:grid-cols-10 gap-1.5 scrollbar-thin">
+            {EMOJI_CATEGORIES[activeEmojiTab].emojis.map((emoji, i) => (
+              <button
+                key={`${emoji}-${i}`}
+                type="button"
+                onClick={() => handleAddEmoji(emoji)}
+                className="text-2xl p-1.5 rounded-lg hover:bg-white/10 hover:scale-125 transition transform flex items-center justify-center select-none"
+              >
+                {emoji}
+              </button>
+            ))}
+          </div>
         </div>
       )}
 

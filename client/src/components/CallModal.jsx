@@ -287,7 +287,7 @@ export default function CallModal({
 
           <h3 className="text-2xl font-bold text-wa-text tracking-tight">{otherName}</h3>
           <p className="text-xs text-wa-green mt-1 uppercase tracking-wider font-semibold animate-pulse">
-            Incoming WhatsApp {callType === 'video' ? 'Video' : 'Audio'} Call...
+            Incoming Wavy {callType === 'video' ? 'Video' : 'Audio'} Call...
           </p>
 
           <div className="flex items-center gap-10 mt-10">

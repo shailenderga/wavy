@@ -176,9 +176,36 @@ async function getStoryViewers(req, res) {
     );
 
     return res.json({ viewers });
+// Delete a story (only by owner)
+async function deleteStory(req, res) {
+  try {
+    const storyId = req.params.id;
+    const userId = req.user.id;
+    const pool = getPool();
+
+    const [storyRows] = await pool.query('SELECT id, user_id FROM stories WHERE id = ?', [storyId]);
+    if (storyRows.length === 0) {
+      return res.status(404).json({ error: 'Story not found' });
+    }
+
+    if (storyRows[0].user_id !== userId) {
+      return res.status(403).json({ error: 'Unauthorized to delete this story' });
+    }
+
+    await pool.query('DELETE FROM stories WHERE id = ?', [storyId]);
+
+    const io = req.app.get('io');
+    if (io) {
+      io.emit('story_deleted', {
+        storyId: parseInt(storyId, 10),
+        userId
+      });
+    }
+
+    return res.json({ success: true, message: 'Story deleted successfully' });
   } catch (err) {
-    console.error('getStoryViewers error:', err);
-    return res.status(500).json({ error: 'Failed to fetch story viewers' });
+    console.error('deleteStory error:', err);
+    return res.status(500).json({ error: 'Failed to delete story' });
   }
 }
 
@@ -186,5 +213,6 @@ module.exports = {
   createStory,
   getStories,
   recordStoryView,
-  getStoryViewers
+  getStoryViewers,
+  deleteStory
 };

@@ -169,10 +169,10 @@ function ChatDashboard() {
       if ('Notification' in window) {
         if (Notification.permission === 'granted') {
           try {
-            const notif = new Notification(`WhatsApp ${data.callType === 'video' ? 'Video' : 'Audio'} Call`, {
-              body: `${data.callerName} is calling you on WhatsApp Web`,
+            const notif = new Notification(`Wavy ${data.callType === 'video' ? 'Video' : 'Audio'} Call`, {
+              body: `${data.callerName} is calling you on Wavy Web`,
               icon: data.callerAvatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=User',
-              tag: 'whatsapp-call',
+              tag: 'wavy-call',
               requireInteraction: true
             });
             notif.onclick = () => {
@@ -235,11 +235,29 @@ function ChatDashboard() {
       }
     };
 
+    const handleStoryDeleted = ({ storyId }) => {
+      setMyStories((prev) => prev.filter((s) => s.id !== storyId));
+      setContactStories((prev) =>
+        prev
+          .map((group) => ({
+            ...group,
+            stories: group.stories.filter((s) => s.id !== storyId)
+          }))
+          .filter((group) => group.stories.length > 0)
+      );
+    };
+
+    const handleMessageDeleted = ({ messageId }) => {
+      setMessages((prev) => prev.filter((m) => m.id !== messageId));
+    };
+
     socket.on('new_message', handleNewMessage);
+    socket.on('message_deleted', handleMessageDeleted);
     socket.on('contact_request_received', handleContactRequestReceived);
     socket.on('contact_request_updated', handleContactRequestUpdated);
     socket.on('new_story_posted', handleNewStoryPosted);
     socket.on('story_viewed', handleStoryViewed);
+    socket.on('story_deleted', handleStoryDeleted);
     socket.on('incoming_call', handleIncomingCall);
     socket.on('call_accepted', handleCallAccepted);
     socket.on('call_rejected', handleCallRejected);
@@ -249,10 +267,12 @@ function ChatDashboard() {
 
     return () => {
       socket.off('new_message', handleNewMessage);
+      socket.off('message_deleted', handleMessageDeleted);
       socket.off('contact_request_received', handleContactRequestReceived);
       socket.off('contact_request_updated', handleContactRequestUpdated);
       socket.off('new_story_posted', handleNewStoryPosted);
       socket.off('story_viewed', handleStoryViewed);
+      socket.off('story_deleted', handleStoryDeleted);
       socket.off('incoming_call', handleIncomingCall);
       socket.off('call_accepted', handleCallAccepted);
       socket.off('call_rejected', handleCallRejected);
@@ -335,6 +355,17 @@ function ChatDashboard() {
     });
   };
 
+  const handleDeleteMessage = async (messageId) => {
+    if (!window.confirm('Are you sure you want to delete this message?')) return;
+    try {
+      await messageAPI.deleteMessage(messageId);
+      setMessages((prev) => prev.filter((m) => m.id !== messageId));
+    } catch (err) {
+      console.error('Failed to delete message:', err);
+      alert(err.response?.data?.error || 'Failed to delete message');
+    }
+  };
+
   const handleViewStory = (group) => {
     setSelectedStoryGroup(group);
     setShowStoryViewerModal(true);
@@ -369,32 +400,36 @@ function ChatDashboard() {
   };
 
   const handleAcceptCall = () => {
-    if (socket && callState) {
-      socket.emit('accept_call', { callerId: callState.callerId });
-    }
+    if (!callState || !socket) return;
+    socket.emit('accept_call', {
+      callerId: callState.callerId
+    });
+    setCallState((prev) => ({ ...prev, isConnected: true }));
   };
 
   const handleRejectCall = () => {
-    if (socket && callState) {
-      socket.emit('reject_call', { callerId: callState.callerId });
-    }
+    if (!callState || !socket) return;
+    socket.emit('reject_call', {
+      callerId: callState.callerId
+    });
     setCallState(null);
   };
 
   const handleEndCall = () => {
-    if (socket && callState) {
-      const targetId = callState.isIncoming ? callState.callerId : callState.targetUserId;
-      socket.emit('end_call', { targetUserId: targetId });
-    }
+    if (!callState || !socket) return;
+    const otherId = callState.isIncoming ? callState.callerId : callState.targetUserId;
+    socket.emit('end_call', {
+      targetUserId: otherId
+    });
     setCallState(null);
   };
 
   if (loading) {
     return (
-      <div className="h-[100dvh] w-screen bg-wa-bg flex items-center justify-center">
+      <div className="h-screen w-screen flex items-center justify-center bg-wa-bg">
         <div className="flex flex-col items-center space-y-4">
           <div className="w-10 h-10 border-4 border-wa-green border-t-transparent rounded-full animate-spin" />
-          <p className="text-sm text-wa-muted">Loading WhatsApp...</p>
+          <p className="text-sm text-wa-muted">Loading Wavy...</p>
         </div>
       </div>
     );
@@ -432,6 +467,7 @@ function ChatDashboard() {
               activeRoom={activeRoom}
               messages={messages}
               onSendMessage={handleSendMessage}
+              onDeleteMessage={handleDeleteMessage}
               onBack={handleBackToChatList}
               onViewProfile={handleViewProfile}
               onStartCall={handleStartCall}

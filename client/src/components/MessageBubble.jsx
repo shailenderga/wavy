@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
-import { CheckCheck, Play, Pause, Mic } from 'lucide-react';
+import { CheckCheck, Play, Pause, Mic, Trash2 } from 'lucide-react';
 
-export default function MessageBubble({ message, isSelf, isGroup }) {
+export default function MessageBubble({ message, isSelf, isGroup, onDeleteMessage }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef(null);
 
@@ -27,12 +27,26 @@ export default function MessageBubble({ message, isSelf, isGroup }) {
   return (
     <div className={`flex my-1.5 px-2 sm:px-6 ${isSelf ? 'justify-end' : 'justify-start'}`}>
       <div
-        className={`relative max-w-[85%] sm:max-w-[70%] md:max-w-[60%] p-2 rounded-lg shadow-sm text-[14px] leading-relaxed break-words whitespace-pre-wrap ${
+        className={`group relative max-w-[85%] sm:max-w-[70%] md:max-w-[60%] p-2 rounded-lg shadow-sm text-[14px] leading-relaxed break-words whitespace-pre-wrap transition ${
           isSelf
             ? 'bg-wa-sent text-wa-text rounded-tr-none'
             : 'bg-wa-received text-wa-text rounded-tl-none'
         }`}
       >
+        {/* Delete Message Button for Sender */}
+        {isSelf && onDeleteMessage && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onDeleteMessage(message.id);
+            }}
+            className="absolute -top-2.5 -right-2 p-1 bg-slate-900/90 hover:bg-rose-600 text-slate-400 hover:text-white rounded-full shadow-md border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+            title="Delete message"
+          >
+            <Trash2 className="w-3 h-3" />
+          </button>
+        )}
+
         {/* Sender Name in Group chats */}
         {!isSelf && isGroup && (
           <div className="text-[12px] font-semibold text-[#53bdeb] mb-1 px-1">

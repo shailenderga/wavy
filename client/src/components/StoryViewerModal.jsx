@@ -10,7 +10,8 @@ import {
   Eye,
   ChevronUp,
   Users,
-  Check
+  Check,
+  Trash2
 } from 'lucide-react';
 
 export default function StoryViewerModal({ storyGroup, isOpen, onClose }) {
@@ -128,6 +129,25 @@ export default function StoryViewerModal({ storyGroup, isOpen, onClose }) {
     }
   };
 
+  const handleDeleteCurrentStory = async () => {
+    if (!currentStory?.id) return;
+    if (!window.confirm('Are you sure you want to delete this status update?')) return;
+
+    try {
+      await storyAPI.deleteStory(currentStory.id);
+      if (stories.length > 1) {
+        if (currentIndex >= stories.length - 1) {
+          setCurrentIndex((prev) => Math.max(0, prev - 1));
+        }
+      } else {
+        onClose();
+      }
+    } catch (err) {
+      console.error('Failed to delete story:', err);
+      alert(err.response?.data?.error || 'Failed to delete status');
+    }
+  };
+
   if (!isOpen || !currentStory) return null;
 
   const timeFormatted = new Date(currentStory.created_at).toLocaleTimeString([], {
@@ -197,6 +217,16 @@ export default function StoryViewerModal({ storyGroup, isOpen, onClose }) {
                 title={isMuted ? 'Unmute' : 'Mute'}
               >
                 {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+              </button>
+            )}
+
+            {isOwner && (
+              <button
+                onClick={handleDeleteCurrentStory}
+                className="p-1.5 text-rose-400 hover:text-rose-300 hover:bg-rose-500/20 rounded-full transition"
+                title="Delete this status"
+              >
+                <Trash2 className="w-5 h-5" />
               </button>
             )}
 

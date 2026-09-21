@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS users (
     email VARCHAR(100) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
     avatar_url LONGTEXT,
-    about VARCHAR(255) DEFAULT 'Hey there! I am using WhatsApp.',
+    about VARCHAR(255) DEFAULT 'Hey there! I am using Wavy.',
     status ENUM('online', 'offline') DEFAULT 'offline',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

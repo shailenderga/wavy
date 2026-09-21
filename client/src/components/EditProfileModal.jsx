@@ -15,13 +15,13 @@ import {
 } from 'lucide-react';
 
 const ABOUT_PRESETS = [
-  'Hey there! I am using WhatsApp.',
+  'Hey there! I am using Wavy.',
   'Available',
   'Busy',
   'At work',
   'In a meeting',
   'Battery about to die',
-  'Can’t talk, WhatsApp only',
+  'Can’t talk, Wavy only',
   'Sleeping'
 ];
 
@@ -47,7 +47,7 @@ export default function EditProfileModal({ isOpen, onClose, onProfileUpdated }) 
     if (user && isOpen) {
       setUsername(user.username || '');
       setEmail(user.email || '');
-      setAbout(user.about || 'Hey there! I am using WhatsApp.');
+      setAbout(user.about || 'Hey there! I am using Wavy.');
       setAvatarUrl(user.avatar_url || '');
       setError('');
       setSuccessMsg('');
@@ -293,7 +293,7 @@ export default function EditProfileModal({ isOpen, onClose, onProfileUpdated }) 
             )}
 
             <p className="text-[11px] text-wa-muted leading-relaxed">
-              This is not your username or pin. This name will be visible to your WhatsApp contacts.
+              This is not your username or pin. This name will be visible to your Wavy contacts.
             </p>
           </div>
 
@@ -318,7 +318,7 @@ export default function EditProfileModal({ isOpen, onClose, onProfileUpdated }) 
                     maxLength={100}
                     value={about}
                     onChange={(e) => setAbout(e.target.value)}
-                    placeholder="Hey there! I am using WhatsApp."
+                    placeholder="Hey there! I am using Wavy."
                     className="flex-1 bg-wa-bg border-b-2 border-wa-green text-wa-text px-2 py-1.5 text-sm focus:outline-none"
                     autoFocus
                   />
@@ -355,7 +355,7 @@ export default function EditProfileModal({ isOpen, onClose, onProfileUpdated }) 
                 onClick={() => setIsEditingAbout(true)}
                 className="text-sm text-wa-text cursor-pointer hover:text-wa-green transition py-1"
               >
-                {about || 'Hey there! I am using WhatsApp.'}
+                {about || 'Hey there! I am using Wavy.'}
               </div>
             )}
           </div>
@@ -383,7 +383,7 @@ export default function EditProfileModal({ isOpen, onClose, onProfileUpdated }) 
                   Delete Account
                 </h4>
                 <p className="text-[11px] text-wa-muted mt-0.5">
-                  Permanently delete your WhatsApp account and chats.
+                  Permanently delete your Wavy account and chats.
                 </p>
               </div>
               <button
