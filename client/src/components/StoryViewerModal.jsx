@@ -32,8 +32,8 @@ export default function StoryViewerModal({ storyGroup, isOpen, onClose, onStoryD
 
   const isOwner =
     user &&
-    (storyGroup?.userId === user.id ||
-      currentStory?.user_id === user.id ||
+    (Number(storyGroup?.userId) === Number(user.id) ||
+      Number(currentStory?.user_id) === Number(user.id) ||
       storyGroup?.username === 'My Status');
 
   useEffect(() => {
@@ -145,7 +145,12 @@ export default function StoryViewerModal({ storyGroup, isOpen, onClose, onStoryD
       }
     } catch (err) {
       console.error('Failed to delete story:', err);
-      alert(err.response?.data?.error || 'Failed to delete status');
+      const errMsg =
+        err.response?.data?.error ||
+        err.response?.data?.message ||
+        err.message ||
+        'Failed to delete status';
+      alert(errMsg);
     }
   };
 

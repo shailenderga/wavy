@@ -162,7 +162,7 @@ async function getStoryViewers(req, res) {
       return res.status(404).json({ error: 'Story not found' });
     }
 
-    if (storyRows[0].user_id !== currentUserId) {
+    if (Number(storyRows[0].user_id) !== Number(currentUserId)) {
       return res.status(403).json({ error: 'Only the story owner can see viewers' });
     }
 
@@ -185,8 +185,8 @@ async function getStoryViewers(req, res) {
 // Delete a story (only by owner)
 async function deleteStory(req, res) {
   try {
-    const storyId = req.params.id;
-    const userId = req.user.id;
+    const storyId = Number(req.params.id);
+    const userId = Number(req.user.id);
     const pool = getPool();
 
     const [storyRows] = await pool.query('SELECT id, user_id FROM stories WHERE id = ?', [storyId]);
@@ -194,7 +194,7 @@ async function deleteStory(req, res) {
       return res.status(404).json({ error: 'Story not found' });
     }
 
-    if (storyRows[0].user_id !== userId) {
+    if (Number(storyRows[0].user_id) !== userId) {
       return res.status(403).json({ error: 'Unauthorized to delete this story' });
     }
 
