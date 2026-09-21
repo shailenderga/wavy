@@ -426,23 +426,34 @@ function ChatDashboard() {
 
   if (loading) {
     return (
-      <div className="h-screen w-screen flex items-center justify-center bg-wa-bg">
-        <div className="flex flex-col items-center space-y-4">
-          <div className="w-10 h-10 border-4 border-wa-green border-t-transparent rounded-full animate-spin" />
-          <p className="text-sm text-wa-muted">Loading Wavy...</p>
+      <div className="h-screen w-screen flex items-center justify-center bg-[#070b14] relative overflow-hidden">
+        {/* Ambient liquid glow */}
+        <div className="absolute top-[20%] left-[20%] w-[400px] h-[400px] rounded-full bg-emerald-500/15 blur-[120px] animate-liquid-1" />
+        <div className="absolute bottom-[20%] right-[20%] w-[450px] h-[450px] rounded-full bg-indigo-600/15 blur-[130px] animate-liquid-2" />
+        <div className="relative z-10 flex flex-col items-center space-y-4 p-8 rounded-3xl bg-slate-950/40 backdrop-blur-2xl border border-white/10 shadow-2xl">
+          <div className="w-12 h-12 border-4 border-emerald-400 border-t-transparent rounded-full animate-spin shadow-lg shadow-emerald-500/20" />
+          <p className="text-sm text-slate-300 font-medium tracking-wide">Loading Wavy...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="h-[100dvh] w-screen flex bg-wa-bg overflow-hidden font-sans select-none">
+    <div className="h-[100dvh] w-screen flex bg-[#070b14] overflow-hidden font-sans select-none relative">
+      {/* Liquid Glass Background Atmosphere */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        <div className="absolute top-[-10%] left-[-10%] w-[55vw] h-[55vw] max-w-[650px] max-h-[650px] rounded-full bg-gradient-to-br from-emerald-500/20 via-teal-500/15 to-transparent blur-[120px] animate-liquid-1" />
+        <div className="absolute bottom-[-15%] right-[-10%] w-[60vw] h-[60vw] max-w-[700px] max-h-[700px] rounded-full bg-gradient-to-tl from-indigo-600/20 via-purple-600/15 to-transparent blur-[140px] animate-liquid-2" />
+        <div className="absolute top-[35%] left-[25%] w-[45vw] h-[45vw] max-w-[500px] max-h-[500px] rounded-full bg-gradient-to-tr from-cyan-500/15 via-blue-600/10 to-transparent blur-[130px] animate-liquid-3" />
+        <div className="absolute bottom-[20%] left-[-5%] w-[35vw] h-[35vw] max-w-[400px] max-h-[400px] rounded-full bg-gradient-to-r from-rose-500/10 via-pink-500/10 to-transparent blur-[100px] animate-liquid-1" />
+      </div>
+
       {!user && <AuthModal />}
 
       {user && (
         <>
           {/* Sidebar */}
-          <div className={`h-full ${activeRoom ? 'hidden md:flex' : 'flex w-full md:w-auto'}`}>
+          <div className={`h-full z-10 ${activeRoom ? 'hidden md:flex' : 'flex w-full md:w-auto'}`}>
             <Sidebar
               contacts={contacts}
               pendingRequests={pendingRequests}
@@ -462,7 +473,7 @@ function ChatDashboard() {
           </div>
 
           {/* ChatArea */}
-          <div className={`h-full flex-1 ${activeRoom ? 'flex' : 'hidden md:flex'}`}>
+          <div className={`h-full flex-1 z-10 ${activeRoom ? 'flex' : 'hidden md:flex'}`}>
             <ChatArea
               activeRoom={activeRoom}
               messages={messages}

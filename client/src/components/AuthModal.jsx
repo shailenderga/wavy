@@ -143,8 +143,8 @@ export default function AuthModal() {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/85 backdrop-blur-sm p-4 select-none animate-fadeIn">
-      <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-7 sm:p-8 transition-all">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-md p-4 select-none animate-fadeIn">
+      <div className="w-full max-w-md bg-slate-950/80 backdrop-blur-3xl border border-white/15 rounded-3xl shadow-[0_25px_70px_rgba(0,0,0,0.85)] p-7 sm:p-8 transition-all">
         {/* Step 2: Profile Setup Screen */}
         {authMode === 'profile_setup' ? (
           <div>

@@ -43,9 +43,9 @@ export default function Sidebar({
   );
 
   return (
-    <aside className="w-full md:w-[380px] lg:w-[420px] h-full bg-wa-bg border-r border-wa-border flex flex-col flex-shrink-0 select-none">
+    <aside className="w-full md:w-[380px] lg:w-[420px] h-full bg-wa-bg backdrop-blur-2xl border-r border-wa-border flex flex-col flex-shrink-0 select-none">
       {/* WhatsApp Header */}
-      <header className="h-16 bg-wa-header px-4 flex items-center justify-between border-b border-wa-border flex-shrink-0">
+      <header className="h-16 bg-wa-header backdrop-blur-xl px-4 flex items-center justify-between border-b border-wa-border flex-shrink-0">
         <div className="flex items-center space-x-3">
           <div
             onClick={() => onOpenEditProfile && onOpenEditProfile()}
@@ -55,11 +55,11 @@ export default function Sidebar({
             <img
               src={user?.avatar_url || 'https://api.dicebear.com/7.x/avataaars/svg?seed=User'}
               alt={user?.username}
-              className="w-10 h-10 rounded-full bg-slate-800 object-cover ring-1 ring-white/10 group-hover:ring-emerald-500/50 shadow-sm transition-all duration-200"
+              className="w-10 h-10 rounded-full bg-slate-800 object-cover ring-1 ring-white/15 group-hover:ring-emerald-500/50 shadow-sm transition-all duration-200"
             />
             <span className="absolute bottom-0 right-0 flex h-3.5 w-3.5 items-center justify-center">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60" />
-              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-wa-header shadow-sm" />
+              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-slate-900 shadow-sm" />
             </span>
           </div>
           <div
@@ -80,7 +80,7 @@ export default function Sidebar({
           <button
             onClick={onCreateStory}
             title="Add Status (Story)"
-            className="p-2 hover:text-wa-text hover:bg-wa-hover rounded-full transition relative"
+            className="p-2 hover:text-wa-text hover:bg-white/10 rounded-full transition relative"
           >
             <CircleDot className="w-5 h-5 text-wa-green" />
           </button>
@@ -89,7 +89,7 @@ export default function Sidebar({
           <button
             onClick={onOpenAddContact}
             title="Find & Add Users"
-            className="p-2 hover:text-wa-text hover:bg-wa-hover rounded-full transition relative"
+            className="p-2 hover:text-wa-text hover:bg-white/10 rounded-full transition relative"
           >
             <UserPlus className="w-5 h-5 text-wa-muted hover:text-wa-green" />
           </button>
@@ -99,19 +99,19 @@ export default function Sidebar({
             <button
               onClick={() => setShowMenu(!showMenu)}
               title="Menu"
-              className="p-2 hover:text-wa-text hover:bg-wa-hover rounded-full transition"
+              className="p-2 hover:text-wa-text hover:bg-white/10 rounded-full transition"
             >
               <MoreVertical className="w-5 h-5" />
             </button>
 
             {showMenu && (
-              <div className="absolute right-0 top-11 w-44 bg-wa-panel border border-wa-border rounded-lg shadow-xl py-1 z-50 text-sm">
+              <div className="absolute right-0 top-11 w-44 bg-slate-900/90 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-2xl py-1.5 z-50 text-sm">
                 <button
                   onClick={() => {
                     if (onOpenEditProfile) onOpenEditProfile();
                     setShowMenu(false);
                   }}
-                  className="w-full px-4 py-2 text-left text-wa-text hover:bg-wa-active flex items-center space-x-2"
+                  className="w-full px-4 py-2 text-left text-wa-text hover:bg-white/10 flex items-center space-x-2 transition"
                 >
                   <User className="w-4 h-4 text-wa-green" />
                   <span>Profile & DP</span>
@@ -121,7 +121,7 @@ export default function Sidebar({
                     onCreateStory();
                     setShowMenu(false);
                   }}
-                  className="w-full px-4 py-2 text-left text-wa-text hover:bg-wa-active flex items-center space-x-2"
+                  className="w-full px-4 py-2 text-left text-wa-text hover:bg-white/10 flex items-center space-x-2 transition"
                 >
                   <CircleDot className="w-4 h-4 text-wa-green" />
                   <span>Add Status</span>
@@ -131,15 +131,15 @@ export default function Sidebar({
                     onOpenAddContact();
                     setShowMenu(false);
                   }}
-                  className="w-full px-4 py-2 text-left text-wa-text hover:bg-wa-active flex items-center space-x-2"
+                  className="w-full px-4 py-2 text-left text-wa-text hover:bg-white/10 flex items-center space-x-2 transition"
                 >
                   <UserPlus className="w-4 h-4 text-wa-green" />
                   <span>Find Contacts</span>
                 </button>
-                <div className="my-1 border-t border-wa-border" />
+                <div className="my-1 border-t border-white/10" />
                 <button
                   onClick={logout}
-                  className="w-full px-4 py-2 text-left text-rose-400 hover:bg-wa-active flex items-center space-x-2"
+                  className="w-full px-4 py-2 text-left text-rose-400 hover:bg-white/10 flex items-center space-x-2 transition"
                 >
                   <LogOut className="w-4 h-4" />
                   <span>Log out</span>
@@ -151,8 +151,8 @@ export default function Sidebar({
       </header>
 
       {/* WhatsApp Search Bar */}
-      <div className="p-2 border-b border-wa-border bg-wa-bg">
-        <div className="relative flex items-center bg-wa-panel rounded-lg px-3 py-1.5">
+      <div className="p-2.5 border-b border-wa-border bg-wa-bg/60 backdrop-blur-xl">
+        <div className="relative flex items-center bg-white/[0.06] backdrop-blur-md rounded-xl px-3 py-2 border border-white/10 focus-within:border-emerald-400/50 transition">
           <Search className="w-4 h-4 text-wa-muted mr-3 flex-shrink-0" />
           <input
             type="text"
@@ -169,7 +169,7 @@ export default function Sidebar({
         </div>
 
         {/* WhatsApp Tabs: Chats, Status (Story), Requests */}
-        <div className="flex items-center gap-1.5 mt-2 px-1">
+        <div className="flex items-center gap-1.5 mt-2.5 px-0.5">
           {[
             { id: 'direct', label: 'Chats' },
             {
@@ -186,10 +186,10 @@ export default function Sidebar({
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`px-4 py-1.5 rounded-full text-xs font-medium transition flex items-center space-x-1.5 ${
+              className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition flex items-center space-x-1.5 ${
                 activeTab === tab.id
-                  ? 'bg-wa-panel text-wa-green border border-wa-border'
-                  : 'text-wa-muted hover:bg-wa-panel/60 hover:text-wa-text'
+                  ? 'bg-white/[0.12] text-emerald-400 border border-emerald-400/30 shadow-sm backdrop-blur-md'
+                  : 'text-slate-400 hover:bg-white/[0.06] hover:text-slate-200'
               }`}
             >
               <span>{tab.label}</span>

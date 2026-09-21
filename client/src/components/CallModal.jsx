@@ -270,10 +270,10 @@ export default function CallModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md p-4 select-none animate-fadeIn">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xl p-4 select-none animate-fadeIn">
       {/* INCOMING CALL SCREEN */}
       {callStatus === 'incoming' && (
-        <div className="w-full max-w-sm bg-wa-panel border border-wa-border rounded-3xl p-8 shadow-2xl flex flex-col items-center text-center animate-bounce-short">
+        <div className="w-full max-w-sm bg-slate-950/80 backdrop-blur-3xl border border-white/15 rounded-3xl p-8 shadow-[0_25px_70px_rgba(0,0,0,0.85)] flex flex-col items-center text-center animate-bounce-short">
           <div className="relative mb-6">
             <img
               src={otherAvatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=User'}
@@ -320,7 +320,7 @@ export default function CallModal({
 
       {/* ACTIVE CALL / CALLING SCREEN */}
       {callStatus !== 'incoming' && (
-        <div className="w-full max-w-2xl h-[600px] max-h-[92vh] bg-slate-950 border border-wa-border rounded-3xl overflow-hidden shadow-2xl flex flex-col justify-between relative">
+        <div className="w-full max-w-2xl h-[600px] max-h-[92vh] bg-slate-950/80 backdrop-blur-3xl border border-white/15 rounded-3xl overflow-hidden shadow-[0_25px_70px_rgba(0,0,0,0.85)] flex flex-col justify-between relative">
           {/* Top Call Info Bar */}
           <div className="p-4 bg-gradient-to-b from-black/80 to-transparent flex items-center justify-between z-20">
             <div className="flex items-center space-x-3">

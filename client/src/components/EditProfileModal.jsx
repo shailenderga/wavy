@@ -153,8 +153,8 @@ export default function EditProfileModal({ isOpen, onClose, onProfileUpdated }) 
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xs p-4 select-none animate-fadeIn">
-      <div className="w-full max-w-md bg-wa-panel border border-wa-border rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-md p-4 select-none animate-fadeIn">
+      <div className="w-full max-w-md bg-slate-950/80 backdrop-blur-3xl border border-white/15 rounded-3xl shadow-[0_25px_70px_rgba(0,0,0,0.85)] overflow-hidden flex flex-col max-h-[90vh]">
         {/* WhatsApp Header */}
         <div className="h-14 bg-wa-header px-5 flex items-center justify-between border-b border-wa-border flex-shrink-0">
           <div className="flex items-center space-x-2">

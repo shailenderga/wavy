@@ -78,8 +78,8 @@ export default function AddContactModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-xs p-4 select-none animate-fadeIn">
-      <div className="w-full max-w-md bg-wa-panel border border-wa-border rounded-2xl p-5 shadow-2xl flex flex-col max-h-[85vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-md p-4 select-none animate-fadeIn">
+      <div className="w-full max-w-md bg-slate-950/80 backdrop-blur-3xl border border-white/15 rounded-3xl p-5 shadow-[0_25px_70px_rgba(0,0,0,0.85)] flex flex-col max-h-[85vh]">
         {/* Header */}
         <div className="flex items-center justify-between pb-3 border-b border-wa-border">
           <div className="flex items-center space-x-2">

@@ -73,10 +73,10 @@ export default function CreateStoryModal({ isOpen, onClose, onStoryCreated }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 select-none animate-fadeIn">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/75 backdrop-blur-xl p-4 select-none animate-fadeIn">
       <div
-        className="w-full max-w-md h-[540px] rounded-2xl shadow-2xl flex flex-col justify-between p-6 transition-colors duration-300 relative border border-white/10"
-        style={{ backgroundColor: activeTab === 'text' ? selectedColor : '#111b21' }}
+        className="w-full max-w-md h-[540px] rounded-3xl shadow-[0_25px_70px_rgba(0,0,0,0.85)] backdrop-blur-2xl flex flex-col justify-between p-6 transition-colors duration-300 relative border border-white/15"
+        style={{ backgroundColor: activeTab === 'text' ? selectedColor : 'rgba(11, 17, 32, 0.9)' }}
       >
         {/* Top Header & Tab Switcher */}
         <div className="flex items-center justify-between z-10">

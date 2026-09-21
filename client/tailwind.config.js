@@ -8,22 +8,22 @@ export default {
     extend: {
       colors: {
         wa: {
-          bg: '#111b21',
-          panel: '#202c33',
-          header: '#202c33',
-          hover: '#202c33',
-          active: '#2a3942',
-          border: '#222e35',
-          sent: '#005c4b',
-          received: '#202c33',
-          green: '#00a884',
-          greenDark: '#008069',
-          tick: '#53bdeb',
-          tickGrey: '#8696a0',
-          muted: '#8696a0',
-          text: '#e9edef',
-          input: '#2a3942',
-          unread: '#25d366'
+          bg: 'rgba(10, 15, 29, 0.65)',
+          panel: 'rgba(255, 255, 255, 0.05)',
+          header: 'rgba(15, 23, 42, 0.65)',
+          hover: 'rgba(255, 255, 255, 0.08)',
+          active: 'rgba(255, 255, 255, 0.12)',
+          border: 'rgba(255, 255, 255, 0.08)',
+          sent: 'rgba(16, 185, 129, 0.82)',
+          received: 'rgba(30, 41, 59, 0.72)',
+          green: '#10b981',
+          greenDark: '#059669',
+          tick: '#38bdf8',
+          tickGrey: '#94a3b8',
+          muted: '#94a3b8',
+          text: '#f8fafc',
+          input: 'rgba(255, 255, 255, 0.06)',
+          unread: '#10b981'
         }
       }
     },

@@ -27,10 +27,10 @@ export default function MessageBubble({ message, isSelf, isGroup, onDeleteMessag
   return (
     <div className={`flex my-1.5 px-2 sm:px-6 ${isSelf ? 'justify-end' : 'justify-start'}`}>
       <div
-        className={`group relative max-w-[85%] sm:max-w-[70%] md:max-w-[60%] p-2 rounded-lg shadow-sm text-[14px] leading-relaxed break-words whitespace-pre-wrap transition ${
+        className={`group relative max-w-[85%] sm:max-w-[70%] md:max-w-[60%] p-2.5 rounded-2xl shadow-lg backdrop-blur-xl border text-[14px] leading-relaxed break-words whitespace-pre-wrap transition ${
           isSelf
-            ? 'bg-wa-sent text-wa-text rounded-tr-none'
-            : 'bg-wa-received text-wa-text rounded-tl-none'
+            ? 'bg-emerald-600/80 border-emerald-400/30 text-white rounded-tr-none shadow-emerald-950/30'
+            : 'bg-slate-900/70 border-white/10 text-slate-100 rounded-tl-none shadow-black/40'
         }`}
       >
         {/* Delete Message Button for Sender */}

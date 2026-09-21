@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Custom scrollbars */
+/* Liquid Glass Custom Scrollbars */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -13,32 +13,81 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #374248;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #4a575f;
+  background: rgba(255, 255, 255, 0.28);
 }
 
-/* WhatsApp Pattern Wallpaper */
+/* Liquid Glass Floating Background Orbs Animations */
+@keyframes liquidBlob1 {
+  0%, 100% {
+    transform: translate(0px, 0px) scale(1) rotate(0deg);
+  }
+  33% {
+    transform: translate(60px, -50px) scale(1.15) rotate(120deg);
+  }
+  66% {
+    transform: translate(-40px, 40px) scale(0.9) rotate(240deg);
+  }
+}
+
+@keyframes liquidBlob2 {
+  0%, 100% {
+    transform: translate(0px, 0px) scale(1) rotate(0deg);
+  }
+  33% {
+    transform: translate(-70px, 50px) scale(1.2) rotate(-120deg);
+  }
+  66% {
+    transform: translate(50px, -60px) scale(0.85) rotate(-240deg);
+  }
+}
+
+@keyframes liquidBlob3 {
+  0%, 100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  50% {
+    transform: translate(50px, 60px) scale(1.1);
+  }
+}
+
+.animate-liquid-1 {
+  animation: liquidBlob1 20s ease-in-out infinite;
+}
+
+.animate-liquid-2 {
+  animation: liquidBlob2 25s ease-in-out infinite;
+}
+
+.animate-liquid-3 {
+  animation: liquidBlob3 30s ease-in-out infinite;
+}
+
+/* Liquid Wallpaper with translucent grid overlay */
 .wa-wallpaper {
-  background-color: #0b141a;
+  background-color: transparent;
   background-image: 
-    radial-gradient(circle at 25px 25px, rgba(255, 255, 255, 0.03) 2%, transparent 0%),
-    radial-gradient(circle at 75px 75px, rgba(255, 255, 255, 0.03) 2%, transparent 0%);
-  background-size: 100px 100px;
+    radial-gradient(circle at 25px 25px, rgba(255, 255, 255, 0.035) 2%, transparent 0%),
+    radial-gradient(circle at 75px 75px, rgba(255, 255, 255, 0.035) 2%, transparent 0%);
+  background-size: 80px 80px;
 }
 
-/* Speech bubble tails */
+/* Glass Speech bubble tails */
 .wa-bubble-sent::after {
   content: "";
   position: absolute;
   top: 0;
-  right: -8px;
+  right: -7px;
   width: 0;
   height: 0;
-  border-top: 10px solid #005c4b;
+  border-top: 10px solid rgba(16, 185, 129, 0.82);
   border-right: 10px solid transparent;
 }
 
@@ -46,9 +95,9 @@
   content: "";
   position: absolute;
   top: 0;
-  left: -8px;
+  left: -7px;
   width: 0;
   height: 0;
-  border-top: 10px solid #202c33;
+  border-top: 10px solid rgba(30, 41, 59, 0.72);
   border-left: 10px solid transparent;
 }

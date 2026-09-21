@@ -301,9 +301,9 @@ export default function ChatArea({
   };
 
   return (
-    <main className="flex-1 h-full flex flex-col bg-wa-bg min-w-0">
+    <main className="flex-1 h-full flex flex-col bg-wa-bg backdrop-blur-2xl min-w-0 relative">
       {/* WhatsApp Chat Header */}
-      <header className="h-16 bg-wa-header px-3 sm:px-4 flex items-center justify-between border-b border-wa-border flex-shrink-0 z-10">
+      <header className="h-16 bg-wa-header backdrop-blur-xl px-3 sm:px-4 flex items-center justify-between border-b border-wa-border flex-shrink-0 z-10 shadow-sm">
         <div className="flex items-center space-x-2 sm:space-x-3 truncate">
           {/* Back button for Mobile */}
           <button
@@ -415,7 +415,7 @@ export default function ChatArea({
 
       {/* Full Categorized Emoji Picker Card */}
       {showEmojiPicker && (
-        <div className="mx-2 sm:mx-4 mb-2 bg-[#202c33]/98 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl p-3 z-30 animate-fadeIn flex flex-col max-h-[290px]">
+        <div className="mx-2 sm:mx-4 mb-2 bg-slate-950/85 backdrop-blur-2xl border border-white/15 rounded-3xl shadow-2xl p-3 z-30 animate-fadeIn flex flex-col max-h-[300px]">
           {/* Category Tabs */}
           <div className="flex items-center justify-between pb-2 border-b border-white/10 overflow-x-auto gap-1 scrollbar-none">
             {EMOJI_CATEGORIES.map((cat, idx) => (
@@ -423,10 +423,10 @@ export default function ChatArea({
                 key={cat.name}
                 type="button"
                 onClick={() => setActiveEmojiTab(idx)}
-                className={`px-2.5 py-1 rounded-lg text-xs font-medium flex items-center space-x-1.5 transition whitespace-nowrap ${
+                className={`px-2.5 py-1 rounded-xl text-xs font-medium flex items-center space-x-1.5 transition whitespace-nowrap ${
                   activeEmojiTab === idx
-                    ? 'bg-wa-green text-white shadow-sm'
-                    : 'text-slate-400 hover:text-white hover:bg-white/5'
+                    ? 'bg-emerald-500 text-white shadow-sm'
+                    : 'text-slate-400 hover:text-white hover:bg-white/10'
                 }`}
               >
                 <span>{cat.icon}</span>
@@ -450,7 +450,7 @@ export default function ChatArea({
                 key={`${emoji}-${i}`}
                 type="button"
                 onClick={() => handleAddEmoji(emoji)}
-                className="text-2xl p-1.5 rounded-lg hover:bg-white/10 hover:scale-125 transition transform flex items-center justify-center select-none"
+                className="text-2xl p-1.5 rounded-xl hover:bg-white/15 hover:scale-125 transition transform flex items-center justify-center select-none"
               >
                 {emoji}
               </button>
@@ -460,10 +460,10 @@ export default function ChatArea({
       )}
 
       {/* Modern WhatsApp Input Bar */}
-      <footer className="bg-[#202c33]/95 backdrop-blur-md px-3 sm:px-4 py-3 flex items-center space-x-2 sm:space-x-3 border-t border-white/5 relative z-10">
+      <footer className="bg-wa-header backdrop-blur-2xl px-3 sm:px-4 py-3 flex items-center space-x-2 sm:space-x-3 border-t border-wa-border relative z-10 shadow-lg">
         {isRecording ? (
           /* VOICE NOTE RECORDING BAR */
-          <div className="flex-1 flex items-center justify-between px-4 py-2 bg-[#182229] rounded-full border border-rose-500/30 shadow-lg animate-pulse">
+          <div className="flex-1 flex items-center justify-between px-4 py-2 bg-slate-900/80 backdrop-blur-xl rounded-full border border-rose-500/30 shadow-lg animate-pulse">
             <div className="flex items-center space-x-3">
               <span className="relative flex h-3 w-3">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75" />
@@ -532,7 +532,7 @@ export default function ChatArea({
 
             {/* Modern Pill Input Form */}
             <form onSubmit={handleSubmit} className="flex-1 flex items-center space-x-2 sm:space-x-3">
-              <div className="flex-1 flex items-center bg-[#2a3942] hover:bg-[#32424b] focus-within:!bg-[#2a3942] rounded-full px-4 py-2 border border-white/5 focus-within:border-emerald-500/50 focus-within:ring-2 focus-within:ring-emerald-500/20 transition-all duration-200 shadow-inner">
+              <div className="flex-1 flex items-center bg-white/[0.06] hover:bg-white/[0.09] focus-within:!bg-white/[0.08] backdrop-blur-xl rounded-full px-4 py-2 border border-white/10 focus-within:border-emerald-400/50 focus-within:ring-2 focus-within:ring-emerald-400/20 transition-all duration-200 shadow-inner">
                 <input
                   type="text"
                   value={inputText}
@@ -556,10 +556,10 @@ export default function ChatArea({
                 <button
                   type="button"
                   onClick={startRecording}
-                  className="p-3 bg-[#2a3942] hover:bg-emerald-500 text-[#8696a0] hover:text-white rounded-full border border-white/5 hover:border-transparent transition-all duration-200 hover:scale-105 active:scale-95 shadow-md flex items-center justify-center flex-shrink-0 group"
+                  className="p-3 bg-white/[0.08] hover:bg-emerald-500 text-slate-300 hover:text-white rounded-full border border-white/10 hover:border-transparent transition-all duration-200 hover:scale-105 active:scale-95 shadow-md flex items-center justify-center flex-shrink-0 group"
                   title="Hold or tap to record voice note"
                 >
-                  <Mic className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                  <Mic className="w-4 h-4" />
                 </button>
               )}
             </form>
