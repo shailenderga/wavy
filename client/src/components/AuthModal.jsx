@@ -54,20 +54,20 @@ export default function AuthModal() {
           <div className="w-14 h-14 bg-gradient-to-tr from-blue-600 to-indigo-500 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/20 mb-3">
             <MessageSquare className="w-7 h-7 text-white" />
           </div>
-          <h2 className="text-2xl font-bold text-white tracking-tight">
-            {authMode === 'login'
-              ? 'Welcome Back!'
-              : authMode === 'register'
-              ? 'Create an Account'
-              : 'Reset Password'}
-          </h2>
-          <p className="text-xs sm:text-sm text-slate-400 mt-1">
-            {authMode === 'login'
-              ? 'Sign in to access your chat channels and messages'
-              : authMode === 'register'
-              ? 'Join the chat community powered by React & MySQL'
-              : 'Enter your username/email and a new password'}
-          </p>
+          {authMode !== 'login' && (
+            <>
+              <h2 className="text-2xl font-bold text-white tracking-tight">
+                {authMode === 'register'
+                  ? 'Create an Account'
+                  : 'Reset Password'}
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-400 mt-1">
+                {authMode === 'register'
+                  ? 'Join Wavy'
+                  : 'Enter your username/email and a new password'}
+              </p>
+            </>
+          )}
         </div>
 
         {error && (
