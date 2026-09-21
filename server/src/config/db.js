@@ -5,13 +5,34 @@ const path = require('path');
 
 dotenv.config({ path: path.join(__dirname, '../../.env') });
 
-const dbName = (process.env.DB_NAME || 'chatapp_db').trim();
+let dbHost = (process.env.DB_HOST || process.env.MYSQLHOST || 'localhost').trim();
+let dbUser = (process.env.DB_USER || process.env.MYSQLUSER || 'root').trim();
+let dbPassword = (process.env.DB_PASSWORD || process.env.MYSQLPASSWORD || '').trim();
+let dbPort = parseInt((process.env.DB_PORT || process.env.MYSQLPORT || '3306').toString().trim(), 10);
+let dbName = (process.env.DB_NAME || process.env.MYSQLDATABASE || 'chatapp_db').trim();
+
+// Support Railway single connection string (MYSQL_URL or DATABASE_URL)
+const connectionUri = process.env.MYSQL_URL || process.env.DATABASE_URL;
+if (connectionUri) {
+  try {
+    const parsed = new URL(connectionUri);
+    dbHost = parsed.hostname;
+    dbPort = parseInt(parsed.port || '3306', 10);
+    dbUser = decodeURIComponent(parsed.username);
+    dbPassword = decodeURIComponent(parsed.password);
+    if (parsed.pathname && parsed.pathname.length > 1) {
+      dbName = decodeURIComponent(parsed.pathname.slice(1));
+    }
+  } catch (e) {
+    console.warn('⚠️ Could not parse connection URL, falling back to individual env variables');
+  }
+}
 
 const dbConfig = {
-  host: (process.env.DB_HOST || 'localhost').trim(),
-  user: (process.env.DB_USER || 'root').trim(),
-  password: process.env.DB_PASSWORD ? process.env.DB_PASSWORD.trim() : '',
-  port: parseInt((process.env.DB_PORT || '3306').trim(), 10),
+  host: dbHost,
+  user: dbUser,
+  password: dbPassword,
+  port: dbPort,
   multipleStatements: true,
   ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined
 };
