@@ -76,13 +76,40 @@ function setupChatSocket(io) {
 
       try {
         const pool = getPool();
+
+        // 1. Get sender name
+        const [senderRows] = await pool.query('SELECT username, full_name FROM users WHERE id = ?', [userId]);
+        const senderName = senderRows[0]?.username || username;
+
+        // 2. Check room type and get receiver (if direct message)
+        const [roomRows] = await pool.query('SELECT id, name, type FROM rooms WHERE id = ?', [roomId]);
+        let receiverId = null;
+        let receiverName = null;
+
+        if (roomRows.length > 0 && roomRows[0].type === 'direct') {
+          const [memberRows] = await pool.query(
+            `SELECT rm.user_id, u.username 
+             FROM room_members rm 
+             JOIN users u ON rm.user_id = u.id 
+             WHERE rm.room_id = ? AND rm.user_id != ? 
+             LIMIT 1`,
+            [roomId, userId]
+          );
+          if (memberRows.length > 0) {
+            receiverId = memberRows[0].user_id;
+            receiverName = memberRows[0].username;
+          }
+        } else if (roomRows.length > 0) {
+          receiverName = `#${roomRows[0].name}`;
+        }
+
         const [result] = await pool.query(
-          'INSERT INTO messages (room_id, sender_id, content, message_type, media_url) VALUES (?, ?, ?, ?, ?)',
-          [roomId, userId, textContent, type, mediaUrl || null]
+          'INSERT INTO messages (room_id, sender_id, sender_name, receiver_id, receiver_name, content, message_type, media_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+          [roomId, userId, senderName, receiverId, receiverName, textContent, type, mediaUrl || null]
         );
 
         const [rows] = await pool.query(
-          `SELECT m.id, m.room_id, m.sender_id, m.content, m.message_type, m.media_url, m.created_at,
+          `SELECT m.id, m.room_id, m.sender_id, m.sender_name, m.receiver_id, m.receiver_name, m.content, m.message_type, m.media_url, m.created_at,
                   u.username AS sender_name, u.avatar_url AS sender_avatar
            FROM messages m
            JOIN users u ON m.sender_id = u.id

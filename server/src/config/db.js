@@ -88,6 +88,22 @@ async function initializeDatabase() {
       // Column already exists or table doesn't exist yet, ignore
     }
 
+    // Ensure sender_name, receiver_id, receiver_name columns exist on messages table
+    try {
+      await connection.query('ALTER TABLE messages ADD COLUMN sender_name VARCHAR(100) DEFAULT NULL');
+      console.log('✅ Added sender_name column to messages table');
+    } catch (e) {}
+
+    try {
+      await connection.query('ALTER TABLE messages ADD COLUMN receiver_id INT DEFAULT NULL');
+      console.log('✅ Added receiver_id column to messages table');
+    } catch (e) {}
+
+    try {
+      await connection.query('ALTER TABLE messages ADD COLUMN receiver_name VARCHAR(100) DEFAULT NULL');
+      console.log('✅ Added receiver_name column to messages table');
+    } catch (e) {}
+
     await connection.end();
 
     // 3. Initialize connection pool pointing to the target database
