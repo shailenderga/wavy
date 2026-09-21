@@ -7,10 +7,12 @@ const {
   getAllUsers,
   updateProfile,
   forgotPassword,
-  deleteAccount
+  deleteAccount,
+  checkUsername
 } = require('../controllers/authController');
 const { authenticateToken } = require('../middleware/authMiddleware');
 
+router.get('/check-username', checkUsername);
 router.post('/register', register);
 router.post('/login', login);
 router.post('/forgot-password', forgotPassword);

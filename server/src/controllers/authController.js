@@ -322,6 +322,38 @@ async function deleteAccount(req, res) {
     console.error('deleteAccount error:', err);
     return res.status(500).json({ error: 'Failed to delete account: ' + err.message });
   }
+async function checkUsername(req, res) {
+  try {
+    const { username } = req.query;
+    if (!username || !username.trim()) {
+      return res.json({ available: false, message: 'Username cannot be empty' });
+    }
+
+    const trimmed = username.trim();
+    if (trimmed.length < 3) {
+      return res.json({ available: false, message: 'Username must be at least 3 characters long' });
+    }
+
+    const validRegex = /^[a-zA-Z0-9_.]+$/;
+    if (!validRegex.test(trimmed)) {
+      return res.json({ available: false, message: 'Only letters, numbers, dots, and underscores are allowed' });
+    }
+
+    const pool = getPool();
+    const [existing] = await pool.query(
+      'SELECT id FROM users WHERE LOWER(username) = LOWER(?)',
+      [trimmed]
+    );
+
+    if (existing.length > 0) {
+      return res.json({ available: false, message: 'Username is already taken' });
+    }
+
+    return res.json({ available: true, message: 'Username is available!' });
+  } catch (err) {
+    console.error('checkUsername error:', err);
+    return res.status(500).json({ error: 'Failed to check username: ' + err.message });
+  }
 }
 
 module.exports = {
@@ -331,5 +363,6 @@ module.exports = {
   getAllUsers,
   updateProfile,
   forgotPassword,
-  deleteAccount
+  deleteAccount,
+  checkUsername
 };

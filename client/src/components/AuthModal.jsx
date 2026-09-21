@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { authAPI } from '../services/api';
 import {
@@ -12,7 +12,10 @@ import {
   Eye,
   EyeOff,
   Camera,
-  Sparkles
+  Sparkles,
+  UserCheck,
+  X,
+  Info
 } from 'lucide-react';
 
 const ABOUT_PRESETS = [
@@ -25,12 +28,67 @@ const ABOUT_PRESETS = [
 
 export default function AuthModal() {
   const [authMode, setAuthMode] = useState('login'); // 'login' | 'register' | 'forgot' | 'profile_setup'
+  const [regFullName, setRegFullName] = useState('');
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
+
+  // Username availability state
+  const [usernameStatus, setUsernameStatus] = useState(null); // null | 'checking' | 'available' | 'taken' | 'invalid'
+  const [usernameMessage, setUsernameMessage] = useState('');
+
+  // Debounce username availability check in register mode
+  useEffect(() => {
+    if (authMode !== 'register') {
+      setUsernameStatus(null);
+      setUsernameMessage('');
+      return;
+    }
+
+    const trimmed = username.trim();
+    if (!trimmed) {
+      setUsernameStatus(null);
+      setUsernameMessage('');
+      return;
+    }
+
+    if (trimmed.length < 3) {
+      setUsernameStatus('invalid');
+      setUsernameMessage('Username must be at least 3 characters');
+      return;
+    }
+
+    const validRegex = /^[a-zA-Z0-9_.]+$/;
+    if (!validRegex.test(trimmed)) {
+      setUsernameStatus('invalid');
+      setUsernameMessage('Only letters, numbers, dots & underscores allowed');
+      return;
+    }
+
+    setUsernameStatus('checking');
+    setUsernameMessage('Checking availability...');
+
+    const timer = setTimeout(async () => {
+      try {
+        const res = await authAPI.checkUsername(trimmed);
+        if (res.data.available) {
+          setUsernameStatus('available');
+          setUsernameMessage(res.data.message || 'Username is available!');
+        } else {
+          setUsernameStatus('taken');
+          setUsernameMessage(res.data.message || 'Username is already taken');
+        }
+      } catch (err) {
+        console.error('Check username error:', err);
+        setUsernameStatus(null);
+      }
+    }, 350);
+
+    return () => clearTimeout(timer);
+  }, [username, authMode]);
 
   // Profile setup state (Step 2 after signup)
   const [tempUser, setTempUser] = useState(null);
@@ -65,17 +123,24 @@ export default function AuthModal() {
           return;
         }
 
+        if (usernameStatus === 'taken') {
+          setError('This username is already taken. Please choose another username.');
+          setSubmitting(false);
+          return;
+        }
+
         const res = await authAPI.register({
           username: trimmedUser,
           email: trimmedEmail,
-          password
+          password,
+          full_name: regFullName.trim() || trimmedUser
         });
 
         const { user: registeredUser, token: registeredToken } = res.data;
         localStorage.setItem('token', registeredToken);
         setTempUser(registeredUser);
         setTempToken(registeredToken);
-        setFullName(registeredUser.full_name || registeredUser.username);
+        setFullName(registeredUser.full_name || regFullName.trim() || registeredUser.username);
         setAvatarUrl(registeredUser.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(registeredUser.username)}`);
         setAbout('Hey there! I am using Wavy.');
         setAuthMode('profile_setup');
@@ -325,6 +390,27 @@ export default function AuthModal() {
 
             {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Full Name field (above Username on Register) */}
+              {authMode === 'register' && (
+                <div>
+                  <label className="block text-xs font-semibold uppercase text-slate-400 mb-1.5">
+                    Full Name
+                  </label>
+                  <div className="relative">
+                    <UserCheck className="absolute left-3.5 top-3 w-4 h-4 text-slate-500" />
+                    <input
+                      type="text"
+                      required
+                      value={regFullName}
+                      onChange={(e) => setRegFullName(e.target.value)}
+                      placeholder="e.g. Shailender Gautam"
+                      style={{ backgroundColor: '#1e293b', color: '#f1f5f9' }}
+                      className="w-full pl-10 pr-4 py-2.5 !bg-slate-800 border border-slate-700/80 rounded-xl !text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm transition"
+                    />
+                  </div>
+                </div>
+              )}
+
               <div>
                 <label className="block text-xs font-semibold uppercase text-slate-400 mb-1.5">
                   Username {authMode === 'login' && '/ Email'}
@@ -343,9 +429,57 @@ export default function AuthModal() {
                     onChange={(e) => setUsername(e.target.value)}
                     placeholder={authMode === 'register' ? 'Choose unique username' : 'Username or Email'}
                     style={{ backgroundColor: '#1e293b', color: '#f1f5f9' }}
-                    className="w-full pl-10 pr-4 py-2.5 !bg-slate-800 border border-slate-700/80 rounded-xl !text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm transition"
+                    className={`w-full pl-10 pr-10 py-2.5 !bg-slate-800 border rounded-xl !text-slate-100 placeholder-slate-500 focus:outline-none text-sm transition ${
+                      authMode === 'register' && usernameStatus === 'available'
+                        ? 'border-emerald-500/80 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500'
+                        : authMode === 'register' && (usernameStatus === 'taken' || usernameStatus === 'invalid')
+                        ? 'border-rose-500/80 focus:border-rose-500 focus:ring-1 focus:ring-rose-500'
+                        : 'border-slate-700/80 focus:border-blue-500 focus:ring-1 focus:ring-blue-500'
+                    }`}
                   />
+                  {authMode === 'register' && username.trim() && (
+                    <div className="absolute right-3 top-3">
+                      {usernameStatus === 'checking' && (
+                        <div className="w-4 h-4 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" />
+                      )}
+                      {usernameStatus === 'available' && (
+                        <Check className="w-4 h-4 text-emerald-400" />
+                      )}
+                      {usernameStatus === 'taken' && (
+                        <X className="w-4 h-4 text-rose-400" />
+                      )}
+                    </div>
+                  )}
                 </div>
+
+                {/* Real-time username availability indicator */}
+                {authMode === 'register' && username.trim() && (
+                  <div className="mt-1.5 flex items-center space-x-1.5 text-xs">
+                    {usernameStatus === 'checking' && (
+                      <span className="text-slate-400 flex items-center">
+                        Checking availability...
+                      </span>
+                    )}
+                    {usernameStatus === 'available' && (
+                      <span className="text-emerald-400 font-medium flex items-center space-x-1">
+                        <Check className="w-3.5 h-3.5 text-emerald-400 inline-block mr-0.5" />
+                        <span>{usernameMessage || 'Username is available!'}</span>
+                      </span>
+                    )}
+                    {usernameStatus === 'taken' && (
+                      <span className="text-rose-400 font-medium flex items-center space-x-1">
+                        <X className="w-3.5 h-3.5 text-rose-400 inline-block mr-0.5" />
+                        <span>{usernameMessage || 'Username is already taken'}</span>
+                      </span>
+                    )}
+                    {usernameStatus === 'invalid' && (
+                      <span className="text-amber-400 font-medium flex items-center space-x-1">
+                        <Info className="w-3.5 h-3.5 text-amber-400 inline-block mr-0.5" />
+                        <span>{usernameMessage}</span>
+                      </span>
+                    )}
+                  </div>
+                )}
               </div>
 
               {authMode === 'register' && (
