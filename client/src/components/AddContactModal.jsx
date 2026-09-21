@@ -78,26 +78,29 @@ export default function AddContactModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-md p-4 select-none animate-fadeIn">
-      <div className="w-full max-w-md bg-slate-950/80 backdrop-blur-3xl border border-white/15 rounded-3xl p-5 shadow-[0_25px_70px_rgba(0,0,0,0.85)] flex flex-col max-h-[85vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xl p-4 select-none animate-fadeIn">
+      <div className="w-full max-w-md ios-glass-card p-5 flex flex-col max-h-[85vh]">
+        {/* iOS Sheet Handle */}
+        <div className="ios-sheet-handle" />
+
         {/* Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-wa-border">
+        <div className="flex items-center justify-between pb-3 border-b border-white/10">
           <div className="flex items-center space-x-2">
             <UserPlus className="w-5 h-5 text-wa-green" />
-            <h3 className="font-semibold text-wa-text text-base">Find & Add Contacts</h3>
+            <h3 className="font-semibold text-wa-text tracking-tight text-base">Find & Add Contacts</h3>
           </div>
           <button
             onClick={onClose}
-            className="p-1 text-wa-muted hover:text-wa-text hover:bg-wa-hover rounded-full transition"
+            className="p-1 text-wa-muted hover:text-wa-text hover:bg-white/10 rounded-full transition ios-tap"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Search Field */}
+        {/* iOS Capsule Search Field */}
         <div className="mt-4">
-          <div className="relative flex items-center bg-wa-bg rounded-lg px-3 py-2 border border-wa-border">
-            <Search className="w-4 h-4 text-wa-muted mr-2 flex-shrink-0" />
+          <div className="relative flex items-center ios-search-bar px-3 py-2 border border-white/10 focus-within:border-emerald-400/50 transition">
+            <Search className="w-4 h-4 text-slate-400 mr-2 flex-shrink-0" />
             <input
               type="text"
               autoFocus

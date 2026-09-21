@@ -153,17 +153,20 @@ export default function EditProfileModal({ isOpen, onClose, onProfileUpdated }) 
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-md p-4 select-none animate-fadeIn">
-      <div className="w-full max-w-md bg-slate-950/80 backdrop-blur-3xl border border-white/15 rounded-3xl shadow-[0_25px_70px_rgba(0,0,0,0.85)] overflow-hidden flex flex-col max-h-[90vh]">
-        {/* WhatsApp Header */}
-        <div className="h-14 bg-wa-header px-5 flex items-center justify-between border-b border-wa-border flex-shrink-0">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xl p-4 select-none animate-fadeIn">
+      <div className="w-full max-w-md ios-glass-card overflow-hidden flex flex-col max-h-[90vh]">
+        {/* iOS Sheet Handle */}
+        <div className="ios-sheet-handle mt-3.5 mb-1" />
+
+        {/* iOS Modal Header */}
+        <div className="h-12 px-5 flex items-center justify-between border-b border-white/10 flex-shrink-0">
           <div className="flex items-center space-x-2">
             <User className="w-5 h-5 text-wa-green" />
-            <h3 className="text-base font-semibold text-wa-text">Profile</h3>
+            <h3 className="text-base font-semibold text-wa-text tracking-tight">Profile</h3>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 text-wa-muted hover:text-wa-text hover:bg-wa-hover rounded-full transition"
+            className="p-1.5 text-wa-muted hover:text-wa-text hover:bg-white/10 rounded-full transition ios-tap"
             title="Close"
           >
             <X className="w-5 h-5" />

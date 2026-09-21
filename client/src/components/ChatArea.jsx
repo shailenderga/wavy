@@ -301,14 +301,14 @@ export default function ChatArea({
   };
 
   return (
-    <main className="flex-1 h-full flex flex-col bg-wa-bg backdrop-blur-2xl min-w-0 relative">
-      {/* WhatsApp Chat Header */}
-      <header className="h-16 bg-wa-header backdrop-blur-xl px-3 sm:px-4 flex items-center justify-between border-b border-wa-border flex-shrink-0 z-10 shadow-sm">
+    <main className="flex-1 h-full flex flex-col ios-glass min-w-0 relative">
+      {/* iOS Chat Header */}
+      <header className="h-16 ios-header-glass px-3 sm:px-4 flex items-center justify-between flex-shrink-0 z-10 shadow-sm">
         <div className="flex items-center space-x-2 sm:space-x-3 truncate">
           {/* Back button for Mobile */}
           <button
             onClick={onBack}
-            className="md:hidden p-1.5 -ml-1 text-wa-muted hover:text-wa-text hover:bg-wa-hover rounded-full transition"
+            className="md:hidden p-2 -ml-1 text-wa-muted hover:text-wa-text hover:bg-white/10 rounded-full transition ios-tap"
             title="Back to chats"
           >
             <ArrowLeft className="w-5 h-5" />
@@ -318,7 +318,7 @@ export default function ChatArea({
           <div
             onClick={() => isDirect && otherUser && onViewProfile && onViewProfile(otherUser)}
             className={`flex items-center space-x-3 truncate ${
-              isDirect ? 'cursor-pointer hover:opacity-90 transition group' : ''
+              isDirect ? 'cursor-pointer hover:opacity-90 transition group ios-tap' : ''
             }`}
             title={isDirect ? 'Click to view contact profile' : undefined}
           >
@@ -327,7 +327,7 @@ export default function ChatArea({
                 <img
                   src={otherUser?.avatar_url || 'https://api.dicebear.com/7.x/avataaars/svg?seed=User'}
                   alt={otherUser?.username}
-                  className="w-10 h-10 rounded-full object-cover bg-slate-800 ring-1 ring-white/10 shadow"
+                  className="w-10 h-10 rounded-full object-cover bg-slate-800 ring-1 ring-white/15 shadow"
                 />
               ) : (
                 <div className="w-10 h-10 rounded-full bg-wa-green/20 text-wa-green flex items-center justify-center font-bold text-base shadow ring-1 ring-wa-green/30">
@@ -335,12 +335,12 @@ export default function ChatArea({
                 </div>
               )}
               {isOtherUserOnline && (
-                <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-wa-header rounded-full shadow" />
+                <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-slate-900 rounded-full shadow" />
               )}
             </div>
 
             <div className="min-w-0">
-              <h3 className="text-sm font-semibold text-wa-text truncate flex items-center space-x-1.5">
+              <h3 className="text-sm font-semibold text-wa-text tracking-tight truncate flex items-center space-x-1.5">
                 <span>{isDirect ? (otherUser?.full_name || otherUser?.username) : activeRoom.name}</span>
               </h3>
               <p className="text-[11px] text-wa-muted truncate">
@@ -366,21 +366,21 @@ export default function ChatArea({
             <>
               <button
                 onClick={() => onStartCall && otherUser && onStartCall(otherUser, 'audio')}
-                className="p-2 hover:text-wa-text hover:bg-wa-hover rounded-full transition"
+                className="p-2 hover:text-wa-text hover:bg-white/10 rounded-full transition ios-tap"
                 title="Audio Call"
               >
                 <Phone className="w-5 h-5 text-emerald-400" />
               </button>
               <button
                 onClick={() => onStartCall && otherUser && onStartCall(otherUser, 'video')}
-                className="p-2 hover:text-wa-text hover:bg-wa-hover rounded-full transition"
+                className="p-2 hover:text-wa-text hover:bg-white/10 rounded-full transition ios-tap"
                 title="Video Call"
               >
                 <Video className="w-5 h-5 text-emerald-400" />
               </button>
             </>
           )}
-          <button className="p-2 hover:text-wa-text hover:bg-wa-hover rounded-full transition" title="Search in chat">
+          <button className="p-2 hover:text-wa-text hover:bg-white/10 rounded-full transition ios-tap" title="Search in chat">
             <Search className="w-5 h-5" />
           </button>
         </div>
@@ -459,8 +459,8 @@ export default function ChatArea({
         </div>
       )}
 
-      {/* Modern WhatsApp Input Bar */}
-      <footer className="bg-wa-header backdrop-blur-2xl px-3 sm:px-4 py-3 flex items-center space-x-2 sm:space-x-3 border-t border-wa-border relative z-10 shadow-lg">
+      {/* iOS iMessage Style Pill Input Bar */}
+      <footer className="ios-header-glass px-3 sm:px-4 py-3 flex items-center space-x-2 sm:space-x-3 border-t border-white/10 relative z-10 shadow-lg">
         {isRecording ? (
           /* VOICE NOTE RECORDING BAR */
           <div className="flex-1 flex items-center justify-between px-4 py-2 bg-slate-900/80 backdrop-blur-xl rounded-full border border-rose-500/30 shadow-lg animate-pulse">
@@ -478,7 +478,7 @@ export default function ChatArea({
               <button
                 type="button"
                 onClick={cancelRecording}
-                className="p-2 text-wa-muted hover:text-rose-400 rounded-full hover:bg-white/5 transition-colors"
+                className="p-2 text-slate-400 hover:text-rose-400 rounded-full hover:bg-white/5 transition-colors ios-tap"
                 title="Cancel recording"
               >
                 <X className="w-4 h-4" />
@@ -487,7 +487,7 @@ export default function ChatArea({
               <button
                 type="button"
                 onClick={stopAndSendRecording}
-                className="p-2.5 bg-gradient-to-tr from-[#00a884] to-[#25d366] text-white rounded-full shadow-lg shadow-[#00a884]/30 hover:scale-105 active:scale-95 transition-all"
+                className="p-2.5 bg-gradient-to-tr from-emerald-500 to-teal-500 text-white rounded-full shadow-lg shadow-emerald-500/30 transition-all ios-tap"
                 title="Send Voice Note"
               >
                 <Send className="w-4 h-4" />
@@ -502,9 +502,9 @@ export default function ChatArea({
               <button
                 type="button"
                 onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                className={`p-2.5 rounded-full transition-all duration-200 ${
+                className={`p-2.5 rounded-full transition-all duration-200 ios-tap ${
                   showEmojiPicker
-                    ? 'text-emerald-400 bg-white/10'
+                    ? 'text-emerald-400 bg-white/15'
                     : 'hover:text-[#e9edef] hover:bg-white/5'
                 }`}
                 title="Emojis"
@@ -516,7 +516,7 @@ export default function ChatArea({
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="p-2.5 hover:text-[#e9edef] hover:bg-white/5 rounded-full transition-all duration-200"
+                className="p-2.5 hover:text-[#e9edef] hover:bg-white/5 rounded-full transition-all duration-200 ios-tap"
                 title="Attach Photo"
               >
                 <Paperclip className="w-5 h-5" />
@@ -530,16 +530,16 @@ export default function ChatArea({
               />
             </div>
 
-            {/* Modern Pill Input Form */}
+            {/* iOS Pill Input Form */}
             <form onSubmit={handleSubmit} className="flex-1 flex items-center space-x-2 sm:space-x-3">
-              <div className="flex-1 flex items-center bg-white/[0.06] hover:bg-white/[0.09] focus-within:!bg-white/[0.08] backdrop-blur-xl rounded-full px-4 py-2 border border-white/10 focus-within:border-emerald-400/50 focus-within:ring-2 focus-within:ring-emerald-400/20 transition-all duration-200 shadow-inner">
+              <div className="flex-1 flex items-center ios-pill-input px-4 py-2 border border-white/10 focus-within:border-emerald-400/50 focus-within:ring-2 focus-within:ring-emerald-400/20 transition-all duration-200 shadow-inner">
                 <input
                   type="text"
                   value={inputText}
                   onChange={handleInputChange}
                   placeholder="Type a message"
                   style={{ backgroundColor: 'transparent' }}
-                  className="w-full !bg-transparent text-[#e9edef] placeholder-[#8696a0] text-sm focus:outline-none border-none py-0.5"
+                  className="w-full !bg-transparent text-[#e9edef] placeholder-slate-400 text-sm focus:outline-none border-none py-0.5"
                 />
               </div>
 
@@ -547,7 +547,7 @@ export default function ChatArea({
               {inputText.trim() ? (
                 <button
                   type="submit"
-                  className="p-3 bg-gradient-to-tr from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-white rounded-full shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 hover:scale-105 active:scale-95 transition-all duration-200 flex items-center justify-center flex-shrink-0"
+                  className="p-3 bg-gradient-to-tr from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-white rounded-full shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 transition-all duration-200 flex items-center justify-center flex-shrink-0 ios-tap"
                   title="Send message"
                 >
                   <Send className="w-4 h-4 ml-0.5" />
@@ -556,7 +556,7 @@ export default function ChatArea({
                 <button
                   type="button"
                   onClick={startRecording}
-                  className="p-3 bg-white/[0.08] hover:bg-emerald-500 text-slate-300 hover:text-white rounded-full border border-white/10 hover:border-transparent transition-all duration-200 hover:scale-105 active:scale-95 shadow-md flex items-center justify-center flex-shrink-0 group"
+                  className="p-3 bg-white/[0.08] hover:bg-emerald-500 text-slate-300 hover:text-white rounded-full border border-white/10 hover:border-transparent transition-all duration-200 shadow-md flex items-center justify-center flex-shrink-0 group ios-tap"
                   title="Hold or tap to record voice note"
                 >
                   <Mic className="w-4 h-4" />

@@ -73,11 +73,14 @@ export default function CreateStoryModal({ isOpen, onClose, onStoryCreated }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/75 backdrop-blur-xl p-4 select-none animate-fadeIn">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xl p-4 select-none animate-fadeIn">
       <div
-        className="w-full max-w-md h-[540px] rounded-3xl shadow-[0_25px_70px_rgba(0,0,0,0.85)] backdrop-blur-2xl flex flex-col justify-between p-6 transition-colors duration-300 relative border border-white/15"
-        style={{ backgroundColor: activeTab === 'text' ? selectedColor : 'rgba(11, 17, 32, 0.9)' }}
+        className="w-full max-w-md h-[540px] rounded-[28px] shadow-[0_25px_70px_rgba(0,0,0,0.85)] backdrop-blur-2xl flex flex-col justify-between p-6 transition-colors duration-300 relative border border-white/15"
+        style={{ backgroundColor: activeTab === 'text' ? selectedColor : 'rgba(18, 24, 40, 0.9)' }}
       >
+        {/* iOS Sheet Handle */}
+        <div className="ios-sheet-handle mb-3" />
+
         {/* Top Header & Tab Switcher */}
         <div className="flex items-center justify-between z-10">
           <div className="flex items-center bg-black/30 p-1 rounded-xl border border-white/10">
@@ -87,7 +90,7 @@ export default function CreateStoryModal({ isOpen, onClose, onStoryCreated }) {
                 setActiveTab('text');
                 setMediaUrl('');
               }}
-              className={`px-3 py-1 text-xs font-medium rounded-lg transition flex items-center space-x-1 ${
+              className={`px-3 py-1 text-xs font-medium rounded-lg transition flex items-center space-x-1 ios-tap ${
                 activeTab === 'text' ? 'bg-wa-green text-white' : 'text-white/70 hover:text-white'
               }`}
             >
@@ -98,9 +101,9 @@ export default function CreateStoryModal({ isOpen, onClose, onStoryCreated }) {
               type="button"
               onClick={() => {
                 setActiveTab('image');
-                setMediaUrl('');
+                fileInputRef.current?.click();
               }}
-              className={`px-3 py-1 text-xs font-medium rounded-lg transition flex items-center space-x-1 ${
+              className={`px-3 py-1 text-xs font-medium rounded-lg transition flex items-center space-x-1 ios-tap ${
                 activeTab === 'image' ? 'bg-wa-green text-white' : 'text-white/70 hover:text-white'
               }`}
             >
@@ -111,9 +114,9 @@ export default function CreateStoryModal({ isOpen, onClose, onStoryCreated }) {
               type="button"
               onClick={() => {
                 setActiveTab('video');
-                setMediaUrl('');
+                fileInputRef.current?.click();
               }}
-              className={`px-3 py-1 text-xs font-medium rounded-lg transition flex items-center space-x-1 ${
+              className={`px-3 py-1 text-xs font-medium rounded-lg transition flex items-center space-x-1 ios-tap ${
                 activeTab === 'video' ? 'bg-wa-green text-white' : 'text-white/70 hover:text-white'
               }`}
             >
@@ -123,8 +126,9 @@ export default function CreateStoryModal({ isOpen, onClose, onStoryCreated }) {
           </div>
 
           <button
+            type="button"
             onClick={onClose}
-            className="p-1.5 text-white/80 hover:text-white hover:bg-black/20 rounded-full transition"
+            className="p-1.5 text-white/70 hover:text-white hover:bg-black/30 rounded-full transition ios-tap"
           >
             <X className="w-5 h-5" />
           </button>

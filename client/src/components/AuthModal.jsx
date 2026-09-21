@@ -143,8 +143,11 @@ export default function AuthModal() {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-md p-4 select-none animate-fadeIn">
-      <div className="w-full max-w-md bg-slate-950/80 backdrop-blur-3xl border border-white/15 rounded-3xl shadow-[0_25px_70px_rgba(0,0,0,0.85)] p-7 sm:p-8 transition-all">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xl p-4 select-none animate-fadeIn">
+      <div className="w-full max-w-md ios-glass-card p-7 sm:p-8 transition-all">
+        {/* iOS Sheet Handle */}
+        <div className="ios-sheet-handle" />
+
         {/* Step 2: Profile Setup Screen */}
         {authMode === 'profile_setup' ? (
           <div>
@@ -267,7 +270,7 @@ export default function AuthModal() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full mt-2 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-medium rounded-xl shadow-lg shadow-blue-500/25 flex items-center justify-center space-x-2 transition disabled:opacity-50"
+                className="w-full mt-2 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-medium rounded-xl shadow-lg shadow-blue-500/25 flex items-center justify-center space-x-2 transition disabled:opacity-50 ios-tap"
               >
                 <span>{submitting ? 'Saving Profile...' : 'Save & Start Chatting'}</span>
                 <ArrowRight className="w-4 h-4" />
@@ -277,7 +280,7 @@ export default function AuthModal() {
                 <button
                   type="button"
                   onClick={handleSkipProfile}
-                  className="text-xs text-slate-400 hover:text-slate-200 transition"
+                  className="text-xs text-slate-400 hover:text-slate-200 transition ios-tap"
                 >
                   Skip for now
                 </button>
@@ -447,7 +450,7 @@ export default function AuthModal() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full mt-2 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-medium rounded-xl shadow-lg shadow-blue-500/25 flex items-center justify-center space-x-2 transition disabled:opacity-50"
+                className="w-full mt-2 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-medium rounded-xl shadow-lg shadow-blue-500/25 flex items-center justify-center space-x-2 transition disabled:opacity-50 ios-tap"
               >
                 <span>
                   {submitting
