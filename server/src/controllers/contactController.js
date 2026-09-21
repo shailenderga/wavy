@@ -8,7 +8,7 @@ async function searchUsers(req, res) {
     const pool = getPool();
 
     let sql = `
-      SELECT u.id, u.username, u.email, u.avatar_url, u.about, u.status, u.created_at,
+      SELECT u.id, u.username, u.full_name, u.email, u.avatar_url, u.about, u.status, u.created_at,
              cr1.status AS sent_status,
              cr2.status AS received_status,
              cr1.id AS sent_request_id,
@@ -21,8 +21,8 @@ async function searchUsers(req, res) {
     const params = [currentUserId, currentUserId, currentUserId];
 
     if (query) {
-      sql += ` AND (LOWER(u.username) LIKE LOWER(?) OR LOWER(u.email) LIKE LOWER(?))`;
-      params.push(`%${query}%`, `%${query}%`);
+      sql += ` AND (LOWER(u.username) LIKE LOWER(?) OR LOWER(u.full_name) LIKE LOWER(?) OR LOWER(u.email) LIKE LOWER(?))`;
+      params.push(`%${query}%`, `%${query}%`, `%${query}%`);
     }
 
     sql += ` ORDER BY u.username ASC LIMIT 50`;
@@ -46,6 +46,7 @@ async function searchUsers(req, res) {
       return {
         id: u.id,
         username: u.username,
+        full_name: u.full_name || u.username,
         email: u.email,
         avatar_url: u.avatar_url,
         about: u.about || 'Hey there! I am using Wavy.',
@@ -76,7 +77,7 @@ async function getUserProfile(req, res) {
     const pool = getPool();
 
     const [users] = await pool.query(
-      `SELECT u.id, u.username, u.email, u.avatar_url, u.about, u.status, u.created_at,
+      `SELECT u.id, u.username, u.full_name, u.email, u.avatar_url, u.about, u.status, u.created_at,
               cr1.status AS sent_status,
               cr2.status AS received_status,
               cr1.id AS sent_request_id,
@@ -110,6 +111,7 @@ async function getUserProfile(req, res) {
       user: {
         id: u.id,
         username: u.username,
+        full_name: u.full_name || u.username,
         email: u.email,
         avatar_url: u.avatar_url,
         about: u.about || 'Hey there! I am using Wavy.',
@@ -214,7 +216,7 @@ async function getRequests(req, res) {
     // Incoming requests (people asking to connect with me)
     const [incoming] = await pool.query(
       `SELECT cr.id AS request_id, cr.sender_id, cr.created_at,
-              u.username, u.avatar_url, u.status
+              u.username, u.full_name, u.avatar_url, u.status
        FROM contact_requests cr
        JOIN users u ON cr.sender_id = u.id
        WHERE cr.receiver_id = ? AND cr.status = 'pending'
@@ -225,7 +227,7 @@ async function getRequests(req, res) {
     // Outgoing requests (requests I sent that are pending)
     const [outgoing] = await pool.query(
       `SELECT cr.id AS request_id, cr.receiver_id, cr.created_at,
-              u.username, u.avatar_url, u.status
+              u.username, u.full_name, u.avatar_url, u.status
        FROM contact_requests cr
        JOIN users u ON cr.receiver_id = u.id
        WHERE cr.sender_id = ? AND cr.status = 'pending'
@@ -295,7 +297,7 @@ async function getContacts(req, res) {
     const pool = getPool();
 
     const [contacts] = await pool.query(
-      `SELECT u.id, u.username, u.avatar_url, u.about, u.status, u.created_at
+      `SELECT u.id, u.username, u.full_name, u.avatar_url, u.about, u.status, u.created_at
        FROM users u
        WHERE u.id IN (
          SELECT receiver_id FROM contact_requests WHERE sender_id = ? AND status = 'accepted'

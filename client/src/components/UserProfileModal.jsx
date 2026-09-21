@@ -98,10 +98,13 @@ export default function UserProfileModal({
           </div>
 
           <h2 className="text-xl font-bold text-wa-text tracking-tight">
-            {profileUser.username}
+            {profileUser.full_name || profileUser.username}
           </h2>
+          <p className="text-xs text-wa-muted font-medium mt-0.5">
+            @{profileUser.username}
+          </p>
           <span
-            className={`text-xs mt-0.5 font-medium ${
+            className={`text-xs mt-1 font-medium ${
               isOnline ? 'text-wa-green' : 'text-wa-muted'
             }`}
           >

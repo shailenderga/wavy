@@ -11,35 +11,56 @@ const getRandomAvatar = (username) => {
 
 async function register(req, res) {
   try {
-    const { username, email, password } = req.body;
+    const { username, email, password, full_name, avatar_url, about } = req.body;
     if (!username || !email || !password) {
       return res.status(400).json({ error: 'Username, email and password are required' });
     }
 
+    const trimmedUsername = username.trim();
+    const trimmedEmail = email.trim();
+
+    if (trimmedUsername.length < 3) {
+      return res.status(400).json({ error: 'Username must be at least 3 characters long' });
+    }
+
     const pool = getPool();
-    // Check if user exists
-    const [existing] = await pool.query(
-      'SELECT id FROM users WHERE username = ? OR email = ?',
-      [username, email]
+    // 1. Strict unique username check (case-insensitive)
+    const [existingUsername] = await pool.query(
+      'SELECT id FROM users WHERE LOWER(username) = LOWER(?)',
+      [trimmedUsername]
     );
 
-    if (existing.length > 0) {
-      return res.status(400).json({ error: 'Username or Email is already taken' });
+    if (existingUsername.length > 0) {
+      return res.status(400).json({ error: 'This username is already taken. Please choose another username.' });
+    }
+
+    // 2. Strict unique email check (case-insensitive)
+    const [existingEmail] = await pool.query(
+      'SELECT id FROM users WHERE LOWER(email) = LOWER(?)',
+      [trimmedEmail]
+    );
+
+    if (existingEmail.length > 0) {
+      return res.status(400).json({ error: 'This email is already registered. Please sign in or use another email.' });
     }
 
     const password_hash = await bcrypt.hash(password, 10);
-    const avatar_url = getRandomAvatar(username);
+    const userAvatar = avatar_url || getRandomAvatar(trimmedUsername);
+    const userFullName = full_name ? full_name.trim() : trimmedUsername;
+    const userAbout = about ? about.trim() : 'Hey there! I am using Wavy.';
 
     const [result] = await pool.query(
-      'INSERT INTO users (username, email, password_hash, avatar_url, status) VALUES (?, ?, ?, ?, "online")',
-      [username, email, password_hash, avatar_url]
+      'INSERT INTO users (username, full_name, email, password_hash, avatar_url, about, status) VALUES (?, ?, ?, ?, ?, ?, "online")',
+      [trimmedUsername, userFullName, trimmedEmail, password_hash, userAvatar, userAbout]
     );
 
     const user = {
       id: result.insertId,
-      username,
-      email,
-      avatar_url,
+      username: trimmedUsername,
+      full_name: userFullName,
+      email: trimmedEmail,
+      avatar_url: userAvatar,
+      about: userAbout,
       status: 'online'
     };
 
@@ -65,8 +86,8 @@ async function login(req, res) {
 
     const pool = getPool();
     const [users] = await pool.query(
-      'SELECT * FROM users WHERE username = ? OR email = ?',
-      [loginId, loginId]
+      'SELECT * FROM users WHERE LOWER(username) = LOWER(?) OR LOWER(email) = LOWER(?)',
+      [loginId.trim(), loginId.trim()]
     );
 
     if (users.length === 0) {
@@ -91,8 +112,10 @@ async function login(req, res) {
     const userSafe = {
       id: user.id,
       username: user.username,
+      full_name: user.full_name || user.username,
       email: user.email,
       avatar_url: user.avatar_url,
+      about: user.about || 'Hey there! I am using Wavy.',
       status: 'online'
     };
 
@@ -107,7 +130,7 @@ async function getMe(req, res) {
   try {
     const pool = getPool();
     const [users] = await pool.query(
-      'SELECT id, username, email, avatar_url, about, status, created_at FROM users WHERE id = ?',
+      'SELECT id, username, full_name, email, avatar_url, about, status, created_at FROM users WHERE id = ?',
       [req.user.id]
     );
 
@@ -115,7 +138,13 @@ async function getMe(req, res) {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    return res.json({ user: users[0] });
+    const u = users[0];
+    return res.json({
+      user: {
+        ...u,
+        full_name: u.full_name || u.username
+      }
+    });
   } catch (err) {
     console.error('getMe error:', err);
     return res.status(500).json({ error: 'Server error' });
@@ -126,11 +155,16 @@ async function getAllUsers(req, res) {
   try {
     const pool = getPool();
     const [users] = await pool.query(
-      'SELECT id, username, email, avatar_url, about, status, created_at FROM users WHERE id != ? ORDER BY username ASC',
+      'SELECT id, username, full_name, email, avatar_url, about, status, created_at FROM users WHERE id != ? ORDER BY username ASC',
       [req.user.id]
     );
 
-    return res.json({ users });
+    return res.json({
+      users: users.map((u) => ({
+        ...u,
+        full_name: u.full_name || u.username
+      }))
+    });
   } catch (err) {
     console.error('getAllUsers error:', err);
     return res.status(500).json({ error: 'Failed to fetch users' });
@@ -140,7 +174,7 @@ async function getAllUsers(req, res) {
 async function updateProfile(req, res) {
   try {
     const userId = req.user.id;
-    const { username, email, avatar_url, about } = req.body;
+    const { username, full_name, email, avatar_url, about } = req.body;
     const pool = getPool();
 
     // Fetch current user first
@@ -153,15 +187,15 @@ async function updateProfile(req, res) {
     // Check if username is being changed and if it is already taken by another user
     if (username && username.trim().toLowerCase() !== (current.username || '').toLowerCase()) {
       const trimmedName = username.trim();
-      if (!trimmedName) {
-        return res.status(400).json({ error: 'Username cannot be empty' });
+      if (!trimmedName || trimmedName.length < 3) {
+        return res.status(400).json({ error: 'Username must be at least 3 characters long' });
       }
       const [existingUser] = await pool.query(
         'SELECT id FROM users WHERE LOWER(username) = LOWER(?) AND id != ?',
         [trimmedName, userId]
       );
       if (existingUser.length > 0) {
-        return res.status(400).json({ error: 'Username is already taken by another user' });
+        return res.status(400).json({ error: 'This username is already taken by another user. Please choose a unique username.' });
       }
     }
 
@@ -181,20 +215,24 @@ async function updateProfile(req, res) {
     }
 
     const newUsername = username !== undefined ? username.trim() : current.username;
+    const newFullName = full_name !== undefined ? full_name.trim() : (current.full_name || current.username);
     const newEmail = email !== undefined ? email.trim() : current.email;
     const newAvatar = avatar_url !== undefined ? avatar_url : current.avatar_url;
     const newAbout = about !== undefined ? about.trim() : (current.about || 'Hey there! I am using Wavy.');
 
     await pool.query(
-      'UPDATE users SET username = ?, email = ?, avatar_url = ?, about = ? WHERE id = ?',
-      [newUsername, newEmail, newAvatar, newAbout, userId]
+      'UPDATE users SET username = ?, full_name = ?, email = ?, avatar_url = ?, about = ? WHERE id = ?',
+      [newUsername, newFullName, newEmail, newAvatar, newAbout, userId]
     );
 
     const [updatedRows] = await pool.query(
-      'SELECT id, username, email, avatar_url, about, status, created_at FROM users WHERE id = ?',
+      'SELECT id, username, full_name, email, avatar_url, about, status, created_at FROM users WHERE id = ?',
       [userId]
     );
-    const updatedUser = updatedRows[0];
+    const updatedUser = {
+      ...updatedRows[0],
+      full_name: updatedRows[0].full_name || updatedRows[0].username
+    };
 
     // Issue updated token
     const token = jwt.sign(
@@ -209,6 +247,7 @@ async function updateProfile(req, res) {
       io.emit('user_profile_updated', {
         userId: updatedUser.id,
         username: updatedUser.username,
+        full_name: updatedUser.full_name,
         avatar_url: updatedUser.avatar_url,
         about: updatedUser.about
       });

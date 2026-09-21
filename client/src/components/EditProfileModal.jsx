@@ -28,11 +28,13 @@ const ABOUT_PRESETS = [
 export default function EditProfileModal({ isOpen, onClose, onProfileUpdated }) {
   const { user, updateUser, logout } = useAuth();
 
+  const [fullName, setFullName] = useState('');
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [about, setAbout] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
 
+  const [isEditingFullName, setIsEditingFullName] = useState(false);
   const [isEditingName, setIsEditingName] = useState(false);
   const [isEditingAbout, setIsEditingAbout] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -45,12 +47,14 @@ export default function EditProfileModal({ isOpen, onClose, onProfileUpdated }) 
 
   useEffect(() => {
     if (user && isOpen) {
+      setFullName(user.full_name || user.username || '');
       setUsername(user.username || '');
       setEmail(user.email || '');
       setAbout(user.about || 'Hey there! I am using Wavy.');
       setAvatarUrl(user.avatar_url || '');
       setError('');
       setSuccessMsg('');
+      setIsEditingFullName(false);
       setIsEditingName(false);
       setIsEditingAbout(false);
     }
@@ -110,6 +114,7 @@ export default function EditProfileModal({ isOpen, onClose, onProfileUpdated }) 
 
     try {
       const res = await authAPI.updateProfile({
+        full_name: fullName.trim() || username.trim(),
         username: username.trim(),
         email: email.trim(),
         avatar_url: avatarUrl,
@@ -250,10 +255,57 @@ export default function EditProfileModal({ isOpen, onClose, onProfileUpdated }) 
             </div>
           </div>
 
-          {/* Name / Username Section */}
+          {/* Full Name Section */}
           <div className="bg-wa-panel border border-wa-border rounded-2xl p-4 space-y-2">
             <div className="flex items-center justify-between text-xs text-wa-green font-semibold">
-              <span>Your name</span>
+              <span>Full Name</span>
+              <button
+                type="button"
+                onClick={() => setIsEditingFullName(!isEditingFullName)}
+                className="text-wa-muted hover:text-wa-green transition"
+              >
+                <Edit2 className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            {isEditingFullName ? (
+              <div className="flex items-center space-x-2">
+                <input
+                  type="text"
+                  maxLength={100}
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  placeholder="Enter your full name"
+                  className="flex-1 bg-wa-bg border-b-2 border-wa-green text-wa-text px-2 py-1.5 text-sm focus:outline-none"
+                  autoFocus
+                />
+                <button
+                  type="button"
+                  onClick={() => setIsEditingFullName(false)}
+                  className="p-1.5 text-wa-green hover:bg-wa-hover rounded-full transition"
+                  title="Done"
+                >
+                  <Check className="w-4 h-4" />
+                </button>
+              </div>
+            ) : (
+              <div
+                onClick={() => setIsEditingFullName(true)}
+                className="text-sm font-medium text-wa-text cursor-pointer hover:text-wa-green transition py-1"
+              >
+                {fullName || username || 'No name set'}
+              </div>
+            )}
+
+            <p className="text-[11px] text-wa-muted leading-relaxed">
+              This display name will be visible to your Wavy contacts.
+            </p>
+          </div>
+
+          {/* Username Section */}
+          <div className="bg-wa-panel border border-wa-border rounded-2xl p-4 space-y-2">
+            <div className="flex items-center justify-between text-xs text-wa-green font-semibold">
+              <span>Username (@handle)</span>
               <button
                 type="button"
                 onClick={() => setIsEditingName(!isEditingName)}
@@ -265,12 +317,13 @@ export default function EditProfileModal({ isOpen, onClose, onProfileUpdated }) 
 
             {isEditingName ? (
               <div className="flex items-center space-x-2">
+                <span className="text-sm text-wa-muted">@</span>
                 <input
                   type="text"
                   maxLength={50}
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  placeholder="Enter your name"
+                  placeholder="username"
                   className="flex-1 bg-wa-bg border-b-2 border-wa-green text-wa-text px-2 py-1.5 text-sm focus:outline-none"
                   autoFocus
                 />
@@ -288,12 +341,12 @@ export default function EditProfileModal({ isOpen, onClose, onProfileUpdated }) 
                 onClick={() => setIsEditingName(true)}
                 className="text-sm font-medium text-wa-text cursor-pointer hover:text-wa-green transition py-1"
               >
-                {username || 'No name set'}
+                @{username || 'username'}
               </div>
             )}
 
             <p className="text-[11px] text-wa-muted leading-relaxed">
-              This is not your username or pin. This name will be visible to your Wavy contacts.
+              Your unique handle on Wavy. Used for search and contact requests.
             </p>
           </div>
 

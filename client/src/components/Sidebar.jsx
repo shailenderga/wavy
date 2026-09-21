@@ -68,7 +68,7 @@ export default function Sidebar({
             title="Click to edit profile"
           >
             <h3 className="font-semibold text-sm text-wa-text truncate max-w-[130px]">
-              {user?.username}
+              {user?.full_name || user?.username}
             </h3>
             <span className="text-[11px] text-wa-green font-medium">online • edit profile</span>
           </div>
@@ -360,10 +360,10 @@ export default function Sidebar({
                       />
                       <div className="min-w-0">
                         <h4 className="text-sm font-semibold text-wa-text truncate">
-                          {req.username}
+                          {req.full_name || req.username}
                         </h4>
                         <span className="text-[11px] text-wa-muted">
-                          Wants to connect with you
+                          @{req.username} • Wants to connect
                         </span>
                       </div>
                     </div>
@@ -442,7 +442,7 @@ export default function Sidebar({
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">
                         <h4 className="text-sm font-semibold text-wa-text truncate">
-                          {u.username}
+                          {u.full_name || u.username}
                         </h4>
                         <span
                           className={`text-[11px] flex-shrink-0 ${
@@ -453,7 +453,7 @@ export default function Sidebar({
                         </span>
                       </div>
                       <p className="text-xs text-wa-muted truncate mt-0.5">
-                        {isOnline ? 'Tap to chat...' : 'Tap to start conversation'}
+                        {u.about || (isOnline ? 'Tap to chat...' : 'Tap to start conversation')}
                       </p>
                     </div>
                   </div>

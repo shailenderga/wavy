@@ -1,19 +1,50 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { authAPI } from '../services/api';
-import { MessageSquare, User, Mail, Lock, ArrowRight, Check, KeyRound } from 'lucide-react';
+import {
+  MessageSquare,
+  User,
+  Mail,
+  Lock,
+  ArrowRight,
+  Check,
+  KeyRound,
+  Eye,
+  EyeOff,
+  Camera,
+  Sparkles
+} from 'lucide-react';
+
+const ABOUT_PRESETS = [
+  'Hey there! I am using Wavy.',
+  'Available',
+  'Busy',
+  'At work',
+  'Can’t talk, Wavy only'
+];
 
 export default function AuthModal() {
-  const [authMode, setAuthMode] = useState('login'); // 'login' | 'register' | 'forgot'
+  const [authMode, setAuthMode] = useState('login'); // 'login' | 'register' | 'forgot' | 'profile_setup'
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+
+  // Profile setup state (Step 2 after signup)
+  const [tempUser, setTempUser] = useState(null);
+  const [tempToken, setTempToken] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [about, setAbout] = useState('Hey there! I am using Wavy.');
+  const [avatarUrl, setAvatarUrl] = useState('');
+  const fileInputRef = useRef(null);
+
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  const { login, register } = useAuth();
+  const { login, updateUser } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -25,7 +56,29 @@ export default function AuthModal() {
       if (authMode === 'login') {
         await login({ loginId: username || email, password });
       } else if (authMode === 'register') {
-        await register({ username, email, password });
+        const trimmedUser = username.trim();
+        const trimmedEmail = email.trim();
+
+        if (trimmedUser.length < 3) {
+          setError('Username must be at least 3 characters long');
+          setSubmitting(false);
+          return;
+        }
+
+        const res = await authAPI.register({
+          username: trimmedUser,
+          email: trimmedEmail,
+          password
+        });
+
+        const { user: registeredUser, token: registeredToken } = res.data;
+        localStorage.setItem('token', registeredToken);
+        setTempUser(registeredUser);
+        setTempToken(registeredToken);
+        setFullName(registeredUser.full_name || registeredUser.username);
+        setAvatarUrl(registeredUser.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(registeredUser.username)}`);
+        setAbout('Hey there! I am using Wavy.');
+        setAuthMode('profile_setup');
       } else if (authMode === 'forgot') {
         const res = await authAPI.forgotPassword({
           loginId: username || email,
@@ -46,195 +99,411 @@ export default function AuthModal() {
     }
   };
 
+  const handleSaveProfile = async (e) => {
+    e.preventDefault();
+    setSubmitting(true);
+    setError('');
+    try {
+      const res = await authAPI.updateProfile({
+        full_name: fullName.trim() || tempUser.username,
+        about: about.trim() || 'Hey there! I am using Wavy.',
+        avatar_url: avatarUrl
+      });
+      updateUser(res.data.user, tempToken);
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to save profile. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleSkipProfile = () => {
+    if (tempUser && tempToken) {
+      updateUser(tempUser, tempToken);
+    }
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      setError('Image size should be less than 2MB');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      setAvatarUrl(reader.result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRandomizeAvatar = () => {
+    const randomSeed = Math.random().toString(36).substring(7);
+    setAvatarUrl(`https://api.dicebear.com/7.x/avataaars/svg?seed=${randomSeed}`);
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/85 backdrop-blur-sm p-4 select-none animate-fadeIn">
       <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-7 sm:p-8 transition-all">
-        {/* Header */}
-        <div className="flex flex-col items-center mb-6 text-center">
-          <div className="w-14 h-14 bg-gradient-to-tr from-blue-600 to-indigo-500 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/20 mb-3">
-            <MessageSquare className="w-7 h-7 text-white" />
-          </div>
-          {authMode !== 'login' && (
-            <>
-              <h2 className="text-2xl font-bold text-white tracking-tight">
-                {authMode === 'register'
-                  ? 'Create an Account'
-                  : 'Reset Password'}
-              </h2>
-              <p className="text-xs sm:text-sm text-slate-400 mt-1">
-                {authMode === 'register'
-                  ? 'Join Wavy'
-                  : 'Enter your username/email and a new password'}
-              </p>
-            </>
-          )}
-        </div>
-
-        {error && (
-          <div className="mb-4 p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-xs text-rose-400 font-medium">
-            {error}
-          </div>
-        )}
-        {successMsg && (
-          <div className="mb-4 p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-xs text-emerald-400 font-medium flex items-center space-x-2">
-            <Check className="w-4 h-4 flex-shrink-0" />
-            <span>{successMsg}</span>
-          </div>
-        )}
-
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Step 2: Profile Setup Screen */}
+        {authMode === 'profile_setup' ? (
           <div>
-            <label className="block text-xs font-semibold uppercase text-slate-400 mb-1.5">
-              Username {authMode === 'login' && '/ Email'}
-            </label>
-            <div className="relative">
-              <User className="absolute left-3.5 top-3 w-4 h-4 text-slate-500" />
+            <div className="flex flex-col items-center mb-6 text-center">
+              {/* DP Circle with Camera Hover */}
+              <div
+                className="relative group cursor-pointer"
+                onClick={() => fileInputRef.current?.click()}
+                title="Click to choose a photo"
+              >
+                <img
+                  src={avatarUrl || 'https://api.dicebear.com/7.x/avataaars/svg?seed=User'}
+                  alt="Profile Avatar"
+                  className="w-24 h-24 rounded-full object-cover bg-slate-800 ring-4 ring-blue-500/30 shadow-xl transition-transform group-hover:scale-105"
+                />
+                <div className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center text-white transition">
+                  <Camera className="w-6 h-6 mb-0.5" />
+                  <span className="text-[10px] font-medium">Change DP</span>
+                </div>
+              </div>
+
               <input
-                type="text"
-                required
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder={authMode === 'register' ? 'Username' : 'Username or Email'}
-                style={{ backgroundColor: '#1e293b', color: '#f1f5f9' }}
-                className="w-full pl-10 pr-4 py-2.5 !bg-slate-800 border border-slate-700/80 rounded-xl !text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm transition"
+                type="file"
+                ref={fileInputRef}
+                accept="image/*"
+                onChange={handleFileChange}
+                className="hidden"
               />
-            </div>
-          </div>
 
-          {authMode === 'register' && (
-            <div>
-              <label className="block text-xs font-semibold uppercase text-slate-400 mb-1.5">
-                Email Address
-              </label>
-              <div className="relative">
-                <Mail className="absolute left-3.5 top-3 w-4 h-4 text-slate-500" />
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="your@email.com"
-                  style={{ backgroundColor: '#1e293b', color: '#f1f5f9' }}
-                  className="w-full pl-10 pr-4 py-2.5 !bg-slate-800 border border-slate-700/80 rounded-xl !text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm transition"
-                />
+              {/* Photo Action Buttons */}
+              <div className="flex items-center space-x-2 mt-3">
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-blue-400 hover:text-blue-300 rounded-xl text-xs font-medium border border-slate-700 transition flex items-center space-x-1.5"
+                >
+                  <Camera className="w-3.5 h-3.5" />
+                  <span>Upload Photo</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleRandomizeAvatar}
+                  className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-purple-400 hover:text-purple-300 rounded-xl text-xs font-medium border border-slate-700 transition flex items-center space-x-1.5"
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>Random Avatar</span>
+                </button>
               </div>
-            </div>
-          )}
 
-          {authMode !== 'forgot' && (
-            <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label className="text-xs font-semibold uppercase text-slate-400">
-                  Password
+              <h2 className="text-2xl font-bold text-white tracking-tight mt-4">
+                Complete Your Profile
+              </h2>
+              <p className="text-xs text-slate-400 mt-1">
+                Add your full name, bio, and profile picture to get started on Wavy.
+              </p>
+            </div>
+
+            {error && (
+              <div className="mb-4 p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-xs text-rose-400 font-medium">
+                {error}
+              </div>
+            )}
+
+            <form onSubmit={handleSaveProfile} className="space-y-4">
+              {/* Full Name */}
+              <div>
+                <label className="block text-xs font-semibold uppercase text-slate-400 mb-1.5">
+                  Full Name
                 </label>
-                {authMode === 'login' && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setAuthMode('forgot');
-                      setError('');
-                      setSuccessMsg('');
-                    }}
-                    className="text-xs text-blue-400 hover:underline font-medium transition"
-                  >
-                    Forgot password?
-                  </button>
-                )}
+                <div className="relative">
+                  <User className="absolute left-3.5 top-3 w-4 h-4 text-slate-500" />
+                  <input
+                    type="text"
+                    required
+                    maxLength={100}
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    placeholder="e.g. Shailender Gautam"
+                    style={{ backgroundColor: '#1e293b', color: '#f1f5f9' }}
+                    className="w-full pl-10 pr-4 py-2.5 !bg-slate-800 border border-slate-700/80 rounded-xl !text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm transition"
+                  />
+                </div>
               </div>
-              <div className="relative">
-                <Lock className="absolute left-3.5 top-3 w-4 h-4 text-slate-500" />
+
+              {/* Bio / About */}
+              <div>
+                <label className="block text-xs font-semibold uppercase text-slate-400 mb-1.5">
+                  Bio / About
+                </label>
                 <input
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
+                  type="text"
+                  maxLength={100}
+                  value={about}
+                  onChange={(e) => setAbout(e.target.value)}
+                  placeholder="Hey there! I am using Wavy."
                   style={{ backgroundColor: '#1e293b', color: '#f1f5f9' }}
-                  className="w-full pl-10 pr-4 py-2.5 !bg-slate-800 border border-slate-700/80 rounded-xl !text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm transition"
+                  className="w-full px-3 py-2.5 !bg-slate-800 border border-slate-700/80 rounded-xl !text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm transition"
                 />
+
+                {/* Preset Chips */}
+                <div className="flex flex-wrap gap-1.5 mt-2">
+                  {ABOUT_PRESETS.map((preset) => (
+                    <button
+                      key={preset}
+                      type="button"
+                      onClick={() => setAbout(preset)}
+                      className={`text-[11px] px-2.5 py-1 rounded-full border transition ${
+                        about === preset
+                          ? 'bg-blue-600/30 border-blue-500 text-blue-300 font-medium'
+                          : 'bg-slate-800/80 border-slate-700 text-slate-400 hover:text-slate-200'
+                      }`}
+                    >
+                      {preset}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
 
-          {authMode === 'forgot' && (
-            <div>
-              <label className="block text-xs font-semibold uppercase text-slate-400 mb-1.5">
-                New Password
-              </label>
-              <div className="relative">
-                <KeyRound className="absolute left-3.5 top-3 w-4 h-4 text-slate-500" />
-                <input
-                  type="password"
-                  required
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="Enter new password (min 4 chars)"
-                  style={{ backgroundColor: '#1e293b', color: '#f1f5f9' }}
-                  className="w-full pl-10 pr-4 py-2.5 !bg-slate-800 border border-slate-700/80 rounded-xl !text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm transition"
-                />
+              {/* Submit & Skip Buttons */}
+              <button
+                type="submit"
+                disabled={submitting}
+                className="w-full mt-2 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-medium rounded-xl shadow-lg shadow-blue-500/25 flex items-center justify-center space-x-2 transition disabled:opacity-50"
+              >
+                <span>{submitting ? 'Saving Profile...' : 'Save & Start Chatting'}</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+
+              <div className="pt-2 text-center">
+                <button
+                  type="button"
+                  onClick={handleSkipProfile}
+                  className="text-xs text-slate-400 hover:text-slate-200 transition"
+                >
+                  Skip for now
+                </button>
               </div>
-            </div>
-          )}
-
-          <button
-            type="submit"
-            disabled={submitting}
-            className="w-full mt-2 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-medium rounded-xl shadow-lg shadow-blue-500/25 flex items-center justify-center space-x-2 transition disabled:opacity-50"
-          >
-            <span>
-              {submitting
-                ? 'Please wait...'
-                : authMode === 'login'
-                ? 'Sign In'
-                : authMode === 'register'
-                ? 'Sign Up'
-                : 'Reset Password'}
-            </span>
-            <ArrowRight className="w-4 h-4" />
-          </button>
-        </form>
-
-        {/* Toggle Mode */}
-        <div className="mt-5 text-center">
-          {authMode === 'forgot' ? (
-            <button
-              type="button"
-              onClick={() => {
-                setAuthMode('login');
-                setError('');
-                setSuccessMsg('');
-              }}
-              className="text-xs text-blue-400 hover:underline font-medium transition"
-            >
-              Back to Sign in
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={() => {
-                setAuthMode(authMode === 'login' ? 'register' : 'login');
-                setError('');
-                setSuccessMsg('');
-              }}
-              className="text-xs text-slate-400 hover:text-blue-400 transition"
-            >
-              {authMode === 'login'
-                ? "Don't have an account? Sign up"
-                : 'Already have an account? Sign in'}
-            </button>
-          )}
-        </div>
-
-        {/* Modern Created By Badge */}
-        <div className="mt-6 pt-4 border-t border-slate-800/80 flex flex-col items-center">
-          <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-slate-800/60 border border-slate-700/60 shadow-sm">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-xs font-medium text-slate-400">
-              Created by <span className="text-emerald-400 font-semibold">Shailender Gautam</span>
-            </span>
+            </form>
           </div>
-        </div>
+        ) : (
+          /* Step 1: Login, Register, Forgot Password */
+          <>
+            {/* Header */}
+            <div className="flex flex-col items-center mb-6 text-center">
+              <div className="w-14 h-14 bg-gradient-to-tr from-blue-600 to-indigo-500 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/20 mb-3">
+                <MessageSquare className="w-7 h-7 text-white" />
+              </div>
+              {authMode !== 'login' && (
+                <>
+                  <h2 className="text-2xl font-bold text-white tracking-tight">
+                    {authMode === 'register'
+                      ? 'Create an Account'
+                      : 'Reset Password'}
+                  </h2>
+                  <p className="text-xs sm:text-sm text-slate-400 mt-1">
+                    {authMode === 'register'
+                      ? 'Join Wavy with a unique username'
+                      : 'Enter your username/email and a new password'}
+                  </p>
+                </>
+              )}
+            </div>
+
+            {error && (
+              <div className="mb-4 p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-xs text-rose-400 font-medium">
+                {error}
+              </div>
+            )}
+            {successMsg && (
+              <div className="mb-4 p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-xs text-emerald-400 font-medium flex items-center space-x-2">
+                <Check className="w-4 h-4 flex-shrink-0" />
+                <span>{successMsg}</span>
+              </div>
+            )}
+
+            {/* Form */}
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold uppercase text-slate-400 mb-1.5">
+                  Username {authMode === 'login' && '/ Email'}
+                  {authMode === 'register' && (
+                    <span className="text-[10px] text-blue-400 font-normal lowercase ml-1">
+                      (must be unique)
+                    </span>
+                  )}
+                </label>
+                <div className="relative">
+                  <User className="absolute left-3.5 top-3 w-4 h-4 text-slate-500" />
+                  <input
+                    type="text"
+                    required
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    placeholder={authMode === 'register' ? 'Choose unique username' : 'Username or Email'}
+                    style={{ backgroundColor: '#1e293b', color: '#f1f5f9' }}
+                    className="w-full pl-10 pr-4 py-2.5 !bg-slate-800 border border-slate-700/80 rounded-xl !text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm transition"
+                  />
+                </div>
+              </div>
+
+              {authMode === 'register' && (
+                <div>
+                  <label className="block text-xs font-semibold uppercase text-slate-400 mb-1.5">
+                    Email Address
+                  </label>
+                  <div className="relative">
+                    <Mail className="absolute left-3.5 top-3 w-4 h-4 text-slate-500" />
+                    <input
+                      type="email"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="your@email.com"
+                      style={{ backgroundColor: '#1e293b', color: '#f1f5f9' }}
+                      className="w-full pl-10 pr-4 py-2.5 !bg-slate-800 border border-slate-700/80 rounded-xl !text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm transition"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {authMode !== 'forgot' && (
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-xs font-semibold uppercase text-slate-400">
+                      Password
+                    </label>
+                    {authMode === 'login' && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setAuthMode('forgot');
+                          setError('');
+                          setSuccessMsg('');
+                        }}
+                        className="text-xs text-blue-400 hover:underline font-medium transition"
+                      >
+                        Forgot password?
+                      </button>
+                    )}
+                  </div>
+                  <div className="relative">
+                    <Lock className="absolute left-3.5 top-3 w-4 h-4 text-slate-500" />
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      required
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••"
+                      style={{ backgroundColor: '#1e293b', color: '#f1f5f9' }}
+                      className="w-full pl-10 pr-10 py-2.5 !bg-slate-800 border border-slate-700/80 rounded-xl !text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm transition"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-200 p-0.5 transition"
+                      title={showPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="w-4 h-4" />
+                      ) : (
+                        <Eye className="w-4 h-4" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {authMode === 'forgot' && (
+                <div>
+                  <label className="block text-xs font-semibold uppercase text-slate-400 mb-1.5">
+                    New Password
+                  </label>
+                  <div className="relative">
+                    <KeyRound className="absolute left-3.5 top-3 w-4 h-4 text-slate-500" />
+                    <input
+                      type={showNewPassword ? 'text' : 'password'}
+                      required
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder="Enter new password (min 4 chars)"
+                      style={{ backgroundColor: '#1e293b', color: '#f1f5f9' }}
+                      className="w-full pl-10 pr-10 py-2.5 !bg-slate-800 border border-slate-700/80 rounded-xl !text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm transition"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowNewPassword(!showNewPassword)}
+                      className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-200 p-0.5 transition"
+                      title={showNewPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showNewPassword ? (
+                        <EyeOff className="w-4 h-4" />
+                      ) : (
+                        <Eye className="w-4 h-4" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={submitting}
+                className="w-full mt-2 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-medium rounded-xl shadow-lg shadow-blue-500/25 flex items-center justify-center space-x-2 transition disabled:opacity-50"
+              >
+                <span>
+                  {submitting
+                    ? 'Please wait...'
+                    : authMode === 'login'
+                    ? 'Sign In'
+                    : authMode === 'register'
+                    ? 'Continue to Profile Setup'
+                    : 'Reset Password'}
+                </span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </form>
+
+            {/* Toggle Mode */}
+            <div className="mt-5 text-center">
+              {authMode === 'forgot' ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAuthMode('login');
+                    setError('');
+                    setSuccessMsg('');
+                  }}
+                  className="text-xs text-blue-400 hover:underline font-medium transition"
+                >
+                  Back to Sign in
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAuthMode(authMode === 'login' ? 'register' : 'login');
+                    setError('');
+                    setSuccessMsg('');
+                  }}
+                  className="text-xs text-slate-400 hover:text-blue-400 transition"
+                >
+                  {authMode === 'login'
+                    ? "Don't have an account? Sign up"
+                    : 'Already have an account? Sign in'}
+                </button>
+              )}
+            </div>
+
+            {/* Modern Created By Badge */}
+            <div className="mt-6 pt-4 border-t border-slate-800/80 flex flex-col items-center">
+              <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-slate-800/60 border border-slate-700/60 shadow-sm">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="text-xs font-medium text-slate-400">
+                  Created by <span className="text-emerald-400 font-semibold">Shailender Gautam</span>
+                </span>
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

@@ -341,15 +341,17 @@ export default function ChatArea({
 
             <div className="min-w-0">
               <h3 className="text-sm font-semibold text-wa-text truncate flex items-center space-x-1.5">
-                <span>{isDirect ? otherUser?.username : activeRoom.name}</span>
+                <span>{isDirect ? (otherUser?.full_name || otherUser?.username) : activeRoom.name}</span>
               </h3>
               <p className="text-[11px] text-wa-muted truncate">
                 {isDirect ? (
-                  isOtherUserOnline ? (
-                    <span className="text-emerald-400 font-medium">online</span>
-                  ) : (
-                    <span>offline</span>
-                  )
+                  <>
+                    <span className={isOtherUserOnline ? 'text-emerald-400 font-medium' : 'text-wa-muted'}>
+                      {isOtherUserOnline ? 'online' : 'offline'}
+                    </span>
+                    <span className="mx-1">•</span>
+                    <span>@{otherUser?.username}</span>
+                  </>
                 ) : (
                   <span>Channel</span>
                 )}

@@ -80,6 +80,14 @@ async function initializeDatabase() {
       console.log(`✅ Database tables initialized successfully in '${dbName}'`);
     }
 
+    // Ensure full_name column exists on users table
+    try {
+      await connection.query('ALTER TABLE users ADD COLUMN full_name VARCHAR(100) DEFAULT NULL');
+      console.log('✅ Added full_name column to users table');
+    } catch (alterErr) {
+      // Column already exists or table doesn't exist yet, ignore
+    }
+
     await connection.end();
 
     // 3. Initialize connection pool pointing to the target database

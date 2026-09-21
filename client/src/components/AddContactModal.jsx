@@ -151,12 +151,12 @@ export default function AddContactModal({
                     <div className="min-w-0">
                       <div className="flex items-center space-x-1.5">
                         <h4 className="text-sm font-semibold text-wa-text truncate group-hover:text-wa-green transition">
-                          {u.username}
+                          {u.full_name || u.username}
                         </h4>
                         <Info className="w-3.5 h-3.5 text-wa-muted opacity-60 group-hover:opacity-100" />
                       </div>
-                      <span className="text-[11px] text-wa-muted capitalize">
-                        {u.status || 'offline'} • View Profile
+                      <span className="text-[11px] text-wa-muted">
+                        @{u.username} • {u.status || 'offline'}
                       </span>
                     </div>
                   </div>
