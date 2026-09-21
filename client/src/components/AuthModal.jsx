@@ -290,9 +290,8 @@ export default function AuthModal() {
                     maxLength={100}
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    placeholder="e.g. Shailender Gautam"
                     style={{ backgroundColor: '#1e293b', color: '#f1f5f9' }}
-                    className="w-full pl-10 pr-4 py-2.5 !bg-slate-800 border border-slate-700/80 rounded-xl !text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm transition"
+                    className="w-full pl-10 pr-4 py-2.5 !bg-slate-800 border border-slate-700/80 rounded-xl !text-slate-100 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm transition"
                   />
                 </div>
               </div>
@@ -307,9 +306,8 @@ export default function AuthModal() {
                   maxLength={100}
                   value={about}
                   onChange={(e) => setAbout(e.target.value)}
-                  placeholder="Hey there! I am using Wavy."
                   style={{ backgroundColor: '#1e293b', color: '#f1f5f9' }}
-                  className="w-full px-3 py-2.5 !bg-slate-800 border border-slate-700/80 rounded-xl !text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm transition"
+                  className="w-full px-3 py-2.5 !bg-slate-800 border border-slate-700/80 rounded-xl !text-slate-100 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm transition"
                 />
 
                 {/* Preset Chips */}
@@ -403,9 +401,8 @@ export default function AuthModal() {
                       required
                       value={regFullName}
                       onChange={(e) => setRegFullName(e.target.value)}
-                      placeholder="e.g. Shailender Gautam"
                       style={{ backgroundColor: '#1e293b', color: '#f1f5f9' }}
-                      className="w-full pl-10 pr-4 py-2.5 !bg-slate-800 border border-slate-700/80 rounded-xl !text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm transition"
+                      className="w-full pl-10 pr-4 py-2.5 !bg-slate-800 border border-slate-700/80 rounded-xl !text-slate-100 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm transition"
                     />
                   </div>
                 </div>
@@ -414,11 +411,6 @@ export default function AuthModal() {
               <div>
                 <label className="block text-xs font-semibold uppercase text-slate-400 mb-1.5">
                   Username {authMode === 'login' && '/ Email'}
-                  {authMode === 'register' && (
-                    <span className="text-[10px] text-blue-400 font-normal lowercase ml-1">
-                      (must be unique)
-                    </span>
-                  )}
                 </label>
                 <div className="relative">
                   <User className="absolute left-3.5 top-3 w-4 h-4 text-slate-500" />
@@ -427,9 +419,8 @@ export default function AuthModal() {
                     required
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    placeholder={authMode === 'register' ? 'Choose unique username' : 'Username or Email'}
                     style={{ backgroundColor: '#1e293b', color: '#f1f5f9' }}
-                    className={`w-full pl-10 pr-10 py-2.5 !bg-slate-800 border rounded-xl !text-slate-100 placeholder-slate-500 focus:outline-none text-sm transition ${
+                    className={`w-full pl-10 pr-10 py-2.5 !bg-slate-800 border rounded-xl !text-slate-100 focus:outline-none text-sm transition ${
                       authMode === 'register' && usernameStatus === 'available'
                         ? 'border-emerald-500/80 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500'
                         : authMode === 'register' && (usernameStatus === 'taken' || usernameStatus === 'invalid')
@@ -453,31 +444,31 @@ export default function AuthModal() {
                 </div>
 
                 {/* Real-time username availability indicator */}
-                {authMode === 'register' && username.trim() && (
-                  <div className="mt-1.5 flex items-center space-x-1.5 text-xs">
-                    {usernameStatus === 'checking' && (
+                {authMode === 'register' && (
+                  <div className="mt-1.5 min-h-[18px] flex items-center text-xs">
+                    {!username.trim() ? (
+                      <span className="text-slate-500">Enter a username to check availability</span>
+                    ) : usernameStatus === 'checking' ? (
                       <span className="text-slate-400 flex items-center">
+                        <span className="w-3 h-3 border-2 border-slate-400 border-t-transparent rounded-full animate-spin inline-block mr-1.5" />
                         Checking availability...
                       </span>
-                    )}
-                    {usernameStatus === 'available' && (
-                      <span className="text-emerald-400 font-medium flex items-center space-x-1">
-                        <Check className="w-3.5 h-3.5 text-emerald-400 inline-block mr-0.5" />
-                        <span>{usernameMessage || 'Username is available!'}</span>
+                    ) : usernameStatus === 'available' ? (
+                      <span className="text-emerald-400 font-semibold flex items-center space-x-1">
+                        <Check className="w-3.5 h-3.5 text-emerald-400 inline-block mr-1" />
+                        <span>Username is available</span>
                       </span>
-                    )}
-                    {usernameStatus === 'taken' && (
-                      <span className="text-rose-400 font-medium flex items-center space-x-1">
-                        <X className="w-3.5 h-3.5 text-rose-400 inline-block mr-0.5" />
-                        <span>{usernameMessage || 'Username is already taken'}</span>
+                    ) : usernameStatus === 'taken' ? (
+                      <span className="text-rose-400 font-semibold flex items-center space-x-1">
+                        <X className="w-3.5 h-3.5 text-rose-400 inline-block mr-1" />
+                        <span>Username is already taken</span>
                       </span>
-                    )}
-                    {usernameStatus === 'invalid' && (
+                    ) : usernameStatus === 'invalid' ? (
                       <span className="text-amber-400 font-medium flex items-center space-x-1">
-                        <Info className="w-3.5 h-3.5 text-amber-400 inline-block mr-0.5" />
+                        <Info className="w-3.5 h-3.5 text-amber-400 inline-block mr-1" />
                         <span>{usernameMessage}</span>
                       </span>
-                    )}
+                    ) : null}
                   </div>
                 )}
               </div>
@@ -494,9 +485,8 @@ export default function AuthModal() {
                       required
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder="your@email.com"
                       style={{ backgroundColor: '#1e293b', color: '#f1f5f9' }}
-                      className="w-full pl-10 pr-4 py-2.5 !bg-slate-800 border border-slate-700/80 rounded-xl !text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm transition"
+                      className="w-full pl-10 pr-4 py-2.5 !bg-slate-800 border border-slate-700/80 rounded-xl !text-slate-100 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm transition"
                     />
                   </div>
                 </div>
@@ -529,9 +519,8 @@ export default function AuthModal() {
                       required
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      placeholder="••••••••"
                       style={{ backgroundColor: '#1e293b', color: '#f1f5f9' }}
-                      className="w-full pl-10 pr-10 py-2.5 !bg-slate-800 border border-slate-700/80 rounded-xl !text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm transition"
+                      className="w-full pl-10 pr-10 py-2.5 !bg-slate-800 border border-slate-700/80 rounded-xl !text-slate-100 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm transition"
                     />
                     <button
                       type="button"
@@ -561,9 +550,8 @@ export default function AuthModal() {
                       required
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
-                      placeholder="Enter new password (min 4 chars)"
                       style={{ backgroundColor: '#1e293b', color: '#f1f5f9' }}
-                      className="w-full pl-10 pr-10 py-2.5 !bg-slate-800 border border-slate-700/80 rounded-xl !text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm transition"
+                      className="w-full pl-10 pr-10 py-2.5 !bg-slate-800 border border-slate-700/80 rounded-xl !text-slate-100 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm transition"
                     />
                     <button
                       type="button"
