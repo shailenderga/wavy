@@ -5,14 +5,25 @@ const path = require('path');
 
 dotenv.config({ path: path.join(__dirname, '../../.env') });
 
-let dbHost = (process.env.DB_HOST || process.env.MYSQLHOST || 'localhost').trim();
-let dbUser = (process.env.DB_USER || process.env.MYSQLUSER || 'root').trim();
-let dbPassword = (process.env.DB_PASSWORD || process.env.MYSQLPASSWORD || '').trim();
-let dbPort = parseInt((process.env.DB_PORT || process.env.MYSQLPORT || '3306').toString().trim(), 10);
-let dbName = (process.env.DB_NAME || process.env.MYSQLDATABASE || 'chatapp_db').trim();
+// Log any DB-related env keys present in the environment (for debugging without exposing passwords)
+const dbEnvKeys = Object.keys(process.env).filter(k => 
+  k.startsWith('DB_') || k.startsWith('MYSQL') || k.includes('DATABASE')
+);
+console.log('🔍 Detected DB Environment Keys in process.env:', dbEnvKeys);
 
-// Support Railway single connection string (MYSQL_URL or DATABASE_URL)
-const connectionUri = process.env.MYSQL_URL || process.env.DATABASE_URL;
+// Support Railway single connection string variations
+const connectionUri = 
+  process.env.MYSQL_URL || 
+  process.env.MYSQL_PUBLIC_URL || 
+  process.env.DATABASE_URL || 
+  process.env.DATABASE_PUBLIC_URL;
+
+let dbHost = (process.env.DB_HOST || process.env.MYSQLHOST || process.env.MYSQL_HOST || 'localhost').trim();
+let dbUser = (process.env.DB_USER || process.env.MYSQLUSER || process.env.MYSQL_USER || 'root').trim();
+let dbPassword = (process.env.DB_PASSWORD || process.env.MYSQLPASSWORD || process.env.MYSQL_PASSWORD || '').trim();
+let dbPort = parseInt((process.env.DB_PORT || process.env.MYSQLPORT || process.env.MYSQL_PORT || '3306').toString().trim(), 10);
+let dbName = (process.env.DB_NAME || process.env.MYSQLDATABASE || process.env.MYSQL_DATABASE || 'chatapp_db').trim();
+
 if (connectionUri) {
   try {
     const parsed = new URL(connectionUri);
