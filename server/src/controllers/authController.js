@@ -322,6 +322,8 @@ async function deleteAccount(req, res) {
     console.error('deleteAccount error:', err);
     return res.status(500).json({ error: 'Failed to delete account: ' + err.message });
   }
+}
+
 async function checkUsername(req, res) {
   try {
     const { username } = req.query;
