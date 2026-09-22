@@ -13,6 +13,7 @@ const roomRoutes = require('./routes/roomRoutes');
 const messageRoutes = require('./routes/messageRoutes');
 const contactRoutes = require('./routes/contactRoutes');
 const storyRoutes = require('./routes/storyRoutes');
+const callRoutes = require('./routes/callRoutes');
 const { setupChatSocket } = require('./sockets/chatSocket');
 
 const app = express();
@@ -48,6 +49,7 @@ app.use('/api/rooms', roomRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/contacts', contactRoutes);
 app.use('/api/stories', storyRoutes);
+app.use('/api/calls', callRoutes);
 
 
 // Health check endpoint

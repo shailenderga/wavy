@@ -25,27 +25,30 @@ export default function MessageBubble({ message, isSelf, isGroup, onDeleteMessag
   const isAudio = message.message_type === 'audio' && message.media_url;
 
   return (
-    <div className={`flex my-1 px-2 sm:px-6 ${isSelf ? 'justify-end' : 'justify-start'}`}>
-      <div
-        className={`group relative max-w-[85%] sm:max-w-[70%] md:max-w-[60%] px-3.5 py-2.5 shadow-md backdrop-blur-2xl text-[14.5px] leading-relaxed break-words whitespace-pre-wrap transition duration-200 ios-tap ${
-          isSelf
-            ? 'wa-bubble-sent bg-gradient-to-b from-emerald-500 to-emerald-600 text-white border border-emerald-400/30 shadow-emerald-950/20'
-            : 'wa-bubble-received bg-[#242731]/85 border border-white/[0.12] text-slate-100 shadow-black/30'
-        }`}
-      >
-        {/* Delete Message Button for Sender */}
-        {isSelf && onDeleteMessage && (
+    <div className={`group flex my-1 px-2 sm:px-6 items-center ${isSelf ? 'justify-end' : 'justify-start'}`}>
+      {/* Delete Message Button for Sent message (on the left) */}
+      {isSelf && onDeleteMessage && (
+        <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 mr-2 flex items-center">
           <button
             onClick={(e) => {
               e.stopPropagation();
               onDeleteMessage(message.id);
             }}
-            className="absolute -top-2.5 -right-2 p-1.5 bg-[#1c1c1e]/95 hover:bg-rose-600 text-slate-400 hover:text-white rounded-full shadow-lg border border-white/20 sm:opacity-0 sm:group-hover:opacity-100 transition-all ios-tap z-10"
+            className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-rose-500/15 rounded-full transition-all"
             title="Delete message"
           >
-            <Trash2 className="w-3 h-3" />
+            <Trash2 className="w-4 h-4" />
           </button>
-        )}
+        </div>
+      )}
+
+      <div
+        className={`relative max-w-[85%] sm:max-w-[70%] md:max-w-[60%] px-3.5 py-2.5 shadow-md backdrop-blur-2xl text-[14.5px] leading-relaxed break-words whitespace-pre-wrap transition duration-200 ios-tap ${
+          isSelf
+            ? 'wa-bubble-sent bg-gradient-to-b from-emerald-500 to-emerald-600 text-white border border-emerald-400/30 shadow-emerald-950/20'
+            : 'wa-bubble-received bg-[#242731]/85 border border-white/[0.12] text-slate-100 shadow-black/30'
+        }`}
+      >
 
         {/* Sender Name in Group chats */}
         {!isSelf && isGroup && (
@@ -117,6 +120,22 @@ export default function MessageBubble({ message, isSelf, isGroup, onDeleteMessag
           )}
         </div>
       </div>
+
+      {/* Delete Message Button for Received message (on the right) */}
+      {!isSelf && onDeleteMessage && (
+        <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 ml-2 flex items-center">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onDeleteMessage(message.id);
+            }}
+            className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-rose-500/15 rounded-full transition-all"
+            title="Delete message"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
+      )}
     </div>
   );
 }

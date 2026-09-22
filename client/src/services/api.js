@@ -59,5 +59,11 @@ export const storyAPI = {
   deleteStory: (storyId) => api.delete(`/stories/${storyId}`),
 };
 
+export const callAPI = {
+  getCalls: () => api.get('/calls'),
+  deleteCall: (callId) => api.delete(`/calls/${callId}`),
+  clearCalls: () => api.delete('/calls'),
+};
+
 export default api;
 

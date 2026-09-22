@@ -101,8 +101,15 @@ async function deleteMessage(req, res) {
     }
 
     const message = msgRows[0];
-    if (Number(message.sender_id) !== userId) {
-      return res.status(403).json({ error: 'You can only delete your own messages' });
+
+    // Verify user is a member of this chat room
+    const [memberRows] = await pool.query(
+      'SELECT user_id FROM room_members WHERE room_id = ? AND user_id = ?',
+      [message.room_id, userId]
+    );
+
+    if (memberRows.length === 0) {
+      return res.status(403).json({ error: 'You are not a participant in this chat' });
     }
 
     await pool.query('DELETE FROM messages WHERE id = ?', [messageId]);

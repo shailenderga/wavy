@@ -133,6 +133,37 @@ function setupChatSocket(io) {
     // AUDIO & VIDEO CALLING SIGNALING (WebRTC)
     // ==========================================
 
+    const activeCalls = new Map(); // key: "minId_maxId" -> { callerId, receiverId, callType, startTime, acceptedAt }
+
+    async function logCall({ callerId, receiverId, callType, status, duration }) {
+      try {
+        const pool = getPool();
+        const [result] = await pool.query(
+          'INSERT INTO call_logs (caller_id, receiver_id, call_type, status, duration) VALUES (?, ?, ?, ?, ?)',
+          [callerId, receiverId, callType, status, duration]
+        );
+
+        const [rows] = await pool.query(
+          `SELECT c.id, c.caller_id, c.receiver_id, c.call_type, c.status, c.duration, c.created_at,
+                  caller.username AS caller_username, caller.full_name AS caller_full_name, caller.avatar_url AS caller_avatar,
+                  receiver.username AS receiver_username, receiver.full_name AS receiver_full_name, receiver.avatar_url AS receiver_avatar
+           FROM call_logs c
+           JOIN users caller ON c.caller_id = caller.id
+           JOIN users receiver ON c.receiver_id = receiver.id
+           WHERE c.id = ?`,
+          [result.insertId]
+        );
+
+        if (rows.length > 0) {
+          const loggedCall = rows[0];
+          io.to(`user_${callerId}`).emit('call_logged', loggedCall);
+          io.to(`user_${receiverId}`).emit('call_logged', loggedCall);
+        }
+      } catch (err) {
+        console.error('Error logging call:', err.message || err);
+      }
+    }
+
     // Start Call (Caller -> Callee)
     socket.on('start_call', ({ targetUserId, callType, callerName, callerAvatar, signalData }) => {
       console.log(`📞 start_call: from ${userId} (${username}) to ${targetUserId} (${callType})`);
@@ -144,8 +175,18 @@ function setupChatSocket(io) {
 
       const isOnline = (socketsInRoom && socketsInRoom.size > 0) || (userSockets && userSockets.size > 0);
 
+      const callKey = `${Math.min(userId, targetId)}_${Math.max(userId, targetId)}`;
+
       if (isOnline) {
         console.log(`🔔 Delivering incoming_call to target user ${targetUserId} (${callType})`);
+        activeCalls.set(callKey, {
+          callerId: userId,
+          receiverId: targetId,
+          callType: callType === 'video' ? 'video' : 'audio',
+          startTime: Date.now(),
+          acceptedAt: null
+        });
+
         const payload = {
           callerId: userId,
           callerName: callerName || username,
@@ -165,6 +206,13 @@ function setupChatSocket(io) {
         }
       } else {
         console.log(`⚠️ Target user ${targetUserId} is offline`);
+        logCall({
+          callerId: userId,
+          receiverId: targetId,
+          callType: callType === 'video' ? 'video' : 'audio',
+          status: 'missed',
+          duration: 0
+        });
         socket.emit('call_user_offline', { targetUserId });
       }
     });
@@ -174,6 +222,12 @@ function setupChatSocket(io) {
       console.log(`✅ Call accepted by ${userId} for caller ${callerId}`);
       const callerIdNum = Number(callerId);
       const callerSockets = onlineUsers.get(callerIdNum) || onlineUsers.get(String(callerId));
+
+      const callKey = `${Math.min(userId, callerIdNum)}_${Math.max(userId, callerIdNum)}`;
+      const call = activeCalls.get(callKey);
+      if (call) {
+        call.acceptedAt = Date.now();
+      }
 
       const payload = {
         calleeId: userId,
@@ -189,10 +243,22 @@ function setupChatSocket(io) {
     });
 
     // Reject Call (Callee -> Caller)
-    socket.on('reject_call', ({ callerId }) => {
+    socket.on('reject_call', async ({ callerId }) => {
       console.log(`❌ Call rejected by ${userId} for caller ${callerId}`);
       const callerIdNum = Number(callerId);
       const callerSockets = onlineUsers.get(callerIdNum) || onlineUsers.get(String(callerId));
+
+      const callKey = `${Math.min(userId, callerIdNum)}_${Math.max(userId, callerIdNum)}`;
+      const call = activeCalls.get(callKey);
+      activeCalls.delete(callKey);
+
+      await logCall({
+        callerId: callerIdNum,
+        receiverId: userId,
+        callType: call ? call.callType : 'audio',
+        status: 'rejected',
+        duration: 0
+      });
 
       const payload = { calleeId: userId };
       io.to(`user_${callerId}`).emit('call_rejected', payload);
@@ -204,10 +270,25 @@ function setupChatSocket(io) {
     });
 
     // End Call (Either party hangs up)
-    socket.on('end_call', ({ targetUserId }) => {
+    socket.on('end_call', async ({ targetUserId }) => {
       console.log(`⏹️ Call ended by ${userId} for user ${targetUserId}`);
       const targetIdNum = Number(targetUserId);
       const targetSockets = onlineUsers.get(targetIdNum) || onlineUsers.get(String(targetUserId));
+
+      const callKey = `${Math.min(userId, targetIdNum)}_${Math.max(userId, targetIdNum)}`;
+      const call = activeCalls.get(callKey);
+      if (call) {
+        activeCalls.delete(callKey);
+        const duration = call.acceptedAt ? Math.round((Date.now() - call.acceptedAt) / 1000) : 0;
+        const status = call.acceptedAt ? 'completed' : 'missed';
+        await logCall({
+          callerId: call.callerId,
+          receiverId: call.receiverId,
+          callType: call.callType,
+          status,
+          duration
+        });
+      }
 
       const payload = { fromUserId: userId };
       io.to(`user_${targetUserId}`).emit('call_ended', payload);
@@ -246,6 +327,24 @@ function setupChatSocket(io) {
 
     // Disconnect
     socket.on('disconnect', async () => {
+      // Check if user was in an active call
+      for (const [callKey, call] of activeCalls.entries()) {
+        if (call.callerId === userId || call.receiverId === userId) {
+          activeCalls.delete(callKey);
+          const duration = call.acceptedAt ? Math.round((Date.now() - call.acceptedAt) / 1000) : 0;
+          const status = call.acceptedAt ? 'completed' : 'missed';
+          await logCall({
+            callerId: call.callerId,
+            receiverId: call.receiverId,
+            callType: call.callType,
+            status,
+            duration
+          });
+          const otherUserId = call.callerId === userId ? call.receiverId : call.callerId;
+          io.to(`user_${otherUserId}`).emit('call_ended', { fromUserId: userId });
+        }
+      }
+
       if (onlineUsers.has(userId)) {
         onlineUsers.get(userId).delete(socket.id);
         if (onlineUsers.get(userId).size === 0) {

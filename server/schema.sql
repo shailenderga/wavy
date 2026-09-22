@@ -83,5 +83,17 @@ CREATE TABLE IF NOT EXISTS story_views (
     FOREIGN KEY (viewer_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS call_logs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    caller_id INT NOT NULL,
+    receiver_id INT NOT NULL,
+    call_type ENUM('audio', 'video') DEFAULT 'audio',
+    status ENUM('completed', 'missed', 'rejected') DEFAULT 'completed',
+    duration INT DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (caller_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (receiver_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
 
 

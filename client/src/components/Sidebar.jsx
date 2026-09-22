@@ -12,7 +12,13 @@ import {
   Plus,
   CircleDot,
   Radio,
-  User
+  User,
+  Phone,
+  PhoneIncoming,
+  PhoneOutgoing,
+  PhoneMissed,
+  Video,
+  Trash2
 } from 'lucide-react';
 
 export default function Sidebar({
@@ -20,6 +26,10 @@ export default function Sidebar({
   pendingRequests = [],
   myStories = [],
   contactStories = [],
+  calls = [],
+  onDeleteCall,
+  onClearCalls,
+  onStartCall,
   activeRoom,
   onSelectRoom,
   onStartDirectMessage,
@@ -35,12 +45,29 @@ export default function Sidebar({
   const { onlineUserIds } = useSocket();
 
   const [search, setSearch] = useState('');
-  const [activeTab, setActiveTab] = useState('direct'); // 'direct', 'status', 'requests'
+  const [activeTab, setActiveTab] = useState('direct'); // 'direct', 'status', 'calls', 'requests'
   const [showMenu, setShowMenu] = useState(false);
 
   const filteredContacts = contacts.filter((c) =>
     c.username.toLowerCase().includes(search.toLowerCase())
   );
+
+  const formatDuration = (secs) => {
+    if (!secs || secs <= 0) return '0s';
+    const m = Math.floor(secs / 60);
+    const s = secs % 60;
+    if (m > 0) return `${m}m ${s}s`;
+    return `${s}s`;
+  };
+
+  const formatCallTime = (dateStr) => {
+    if (!dateStr) return '';
+    const d = new Date(dateStr);
+    const today = new Date();
+    const isToday = d.toDateString() === today.toDateString();
+    const time = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return isToday ? `Today, ${time}` : `${d.toLocaleDateString([], { month: 'short', day: 'numeric' })}, ${time}`;
+  };
 
   return (
     <aside className="w-full md:w-[380px] lg:w-[420px] h-full ios-glass border-r border-white/10 flex flex-col flex-shrink-0 select-none">
@@ -176,6 +203,11 @@ export default function Sidebar({
               id: 'status',
               label: 'Status',
               badge: contactStories.length > 0
+            },
+            {
+              id: 'calls',
+              label: 'Calls',
+              badge: calls.some((c) => c.status === 'missed' && c.receiver_id === user?.id)
             },
             {
               id: 'requests',
@@ -325,6 +357,122 @@ export default function Sidebar({
                 </div>
               )}
             </div>
+          </div>
+        )}
+
+        {/* CALLS HISTORY TAB */}
+        {activeTab === 'calls' && (
+          <div className="p-3">
+            <div className="flex items-center justify-between mb-3 px-1">
+              <span className="text-xs font-semibold text-wa-muted uppercase tracking-wider">
+                Call History ({calls.length})
+              </span>
+              {calls.length > 0 && onClearCalls && (
+                <button
+                  onClick={onClearCalls}
+                  className="text-xs text-rose-400 hover:text-rose-300 font-medium transition flex items-center gap-1 ios-tap"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Clear History</span>
+                </button>
+              )}
+            </div>
+
+            {calls.length === 0 ? (
+              <div className="py-12 text-center text-wa-muted">
+                <Phone className="w-10 h-10 mx-auto mb-2 opacity-50" />
+                <p className="text-xs">No call history yet</p>
+                <p className="text-[11px] mt-1 text-wa-muted/70">
+                  When you make or receive audio and video calls, they will appear here.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-1">
+                {calls
+                  .filter((c) => {
+                    const isCaller = c.caller_id === user?.id;
+                    const otherName = isCaller
+                      ? (c.receiver_full_name || c.receiver_username)
+                      : (c.caller_full_name || c.caller_username);
+                    return !search || otherName?.toLowerCase().includes(search.toLowerCase());
+                  })
+                  .map((call) => {
+                    const isCaller = call.caller_id === user?.id;
+                    const otherUserId = isCaller ? call.receiver_id : call.caller_id;
+                    const otherName = isCaller
+                      ? (call.receiver_full_name || call.receiver_username)
+                      : (call.caller_full_name || call.caller_username);
+                    const otherAvatar = isCaller ? call.receiver_avatar : call.caller_avatar;
+                    const isVideo = call.call_type === 'video';
+                    const isMissed = call.status === 'missed' || call.status === 'rejected';
+
+                    return (
+                      <div
+                        key={`call-${call.id}`}
+                        className="group p-2.5 rounded-xl hover:bg-white/[0.06] transition flex items-center justify-between"
+                      >
+                        <div className="flex items-center space-x-3 min-w-0 flex-1">
+                          <img
+                            src={otherAvatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=User'}
+                            alt={otherName}
+                            className="w-11 h-11 rounded-full bg-slate-800 object-cover ring-1 ring-white/10 flex-shrink-0"
+                          />
+                          <div className="min-w-0 flex-1">
+                            <h4 className={`text-sm font-semibold truncate ${isMissed && !isCaller ? 'text-rose-400' : 'text-wa-text'}`}>
+                              {otherName}
+                            </h4>
+                            <div className="flex items-center space-x-1.5 text-xs text-wa-muted mt-0.5">
+                              {isMissed ? (
+                                <PhoneMissed className="w-3.5 h-3.5 text-rose-400 flex-shrink-0" />
+                              ) : isCaller ? (
+                                <PhoneOutgoing className="w-3.5 h-3.5 text-blue-400 flex-shrink-0" />
+                              ) : (
+                                <PhoneIncoming className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
+                              )}
+                              <span>{formatCallTime(call.created_at)}</span>
+                              {call.duration > 0 && (
+                                <>
+                                  <span>•</span>
+                                  <span>{formatDuration(call.duration)}</span>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Call Actions */}
+                        <div className="flex items-center space-x-1 flex-shrink-0 ml-2">
+                          <button
+                            onClick={() =>
+                              onStartCall &&
+                              onStartCall({
+                                targetUserId: otherUserId,
+                                targetUserName: otherName,
+                                targetUserAvatar: otherAvatar,
+                                callType: call.call_type
+                              })
+                            }
+                            title={`Call back (${call.call_type})`}
+                            className="p-2 text-wa-green hover:bg-emerald-500/15 rounded-lg transition ios-tap"
+                          >
+                            {isVideo ? <Video className="w-4 h-4" /> : <Phone className="w-4 h-4" />}
+                          </button>
+
+                          {onDeleteCall && (
+                            <button
+                              onClick={() => onDeleteCall(call.id)}
+                              title="Delete log"
+                              className="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/15 rounded-lg opacity-0 group-hover:opacity-100 transition ios-tap"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+            )}
           </div>
         )}
 

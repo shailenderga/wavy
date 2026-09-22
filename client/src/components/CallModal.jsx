@@ -31,6 +31,8 @@ export default function CallModal({
   const [isVideoOff, setIsVideoOff] = useState(false);
   const [duration, setDuration] = useState(0);
   const [callStatus, setCallStatus] = useState('connecting'); // 'calling', 'incoming', 'connected'
+  const [localStream, setLocalStream] = useState(null);
+  const [remoteStream, setRemoteStream] = useState(null);
 
   const pcRef = useRef(null);
   const localStreamRef = useRef(null);
@@ -203,6 +205,7 @@ export default function CallModal({
       console.log('📞 Remote track received:', event.track.kind, event.streams);
       const [remoteStream] = event.streams;
       remoteStreamRef.current = remoteStream;
+      setRemoteStream(remoteStream);
 
       if (remoteAudioRef.current) {
         remoteAudioRef.current.srcObject = remoteStream;
@@ -332,6 +335,7 @@ export default function CallModal({
         }
 
         localStreamRef.current = stream;
+        setLocalStream(stream);
         if (localVideoRef.current && callType === 'video') {
           localVideoRef.current.srcObject = stream;
         }
@@ -366,6 +370,8 @@ export default function CallModal({
     return () => {
       isMounted = false;
       stopAllAudio();
+      setLocalStream(null);
+      setRemoteStream(null);
       if (localStreamRef.current) {
         localStreamRef.current.getTracks().forEach((track) => track.stop());
         localStreamRef.current = null;
@@ -395,6 +401,34 @@ export default function CallModal({
     }
   }, [callState?.isConnected, callStatus]);
 
+  // Synchronize local video stream whenever element mounts or stream changes
+  useEffect(() => {
+    if (localVideoRef.current && localStream && callType === 'video') {
+      localVideoRef.current.srcObject = localStream;
+      localVideoRef.current.play().catch((err) => {
+        console.warn('Local video play warning:', err);
+      });
+    }
+  }, [localStream, callStatus, callType]);
+
+  // Synchronize remote video & audio stream whenever element mounts or stream arrives
+  useEffect(() => {
+    if (remoteVideoRef.current && remoteStream && callType === 'video') {
+      remoteVideoRef.current.srcObject = remoteStream;
+      remoteVideoRef.current.play().catch((err) => {
+        console.warn('Remote video play warning:', err);
+      });
+    }
+    if (remoteAudioRef.current && remoteStream) {
+      remoteAudioRef.current.srcObject = remoteStream;
+      remoteAudioRef.current.volume = 1.0;
+      remoteAudioRef.current.muted = false;
+      remoteAudioRef.current.play().catch((err) => {
+        console.warn('Remote audio play warning:', err);
+      });
+    }
+  }, [remoteStream, callStatus, callType]);
+
   // Callee accepts the call
   const handleAcceptCall = async () => {
     stopAllAudio();
@@ -406,6 +440,7 @@ export default function CallModal({
       });
 
       localStreamRef.current = stream;
+      setLocalStream(stream);
       if (localVideoRef.current && callType === 'video') {
         localVideoRef.current.srcObject = stream;
       }
@@ -468,6 +503,8 @@ export default function CallModal({
 
   const handleEnd = () => {
     stopAllAudio();
+    setLocalStream(null);
+    setRemoteStream(null);
     if (localStreamRef.current) {
       localStreamRef.current.getTracks().forEach((track) => track.stop());
       localStreamRef.current = null;

@@ -10,7 +10,7 @@ import CreateStoryModal from './components/CreateStoryModal';
 import StoryViewerModal from './components/StoryViewerModal';
 import CallModal from './components/CallModal';
 import EditProfileModal from './components/EditProfileModal';
-import { roomAPI, contactAPI, messageAPI, storyAPI } from './services/api';
+import { roomAPI, contactAPI, messageAPI, storyAPI, callAPI } from './services/api';
 
 function ChatDashboard() {
   const { user, loading } = useAuth();
@@ -22,6 +22,7 @@ function ChatDashboard() {
   const [pendingRequests, setPendingRequests] = useState([]);
   const [myStories, setMyStories] = useState([]);
   const [contactStories, setContactStories] = useState([]);
+  const [calls, setCalls] = useState([]);
 
   const [activeRoom, setActiveRoom] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -38,14 +39,15 @@ function ChatDashboard() {
   // Calling State
   const [callState, setCallState] = useState(null);
 
-  // Load Rooms, Contacts, Requests & Stories
+  // Load Rooms, Contacts, Requests, Stories & Call logs
   const loadInitialData = useCallback(async () => {
     try {
-      const [roomsRes, contactsRes, requestsRes, storiesRes] = await Promise.all([
+      const [roomsRes, contactsRes, requestsRes, storiesRes, callsRes] = await Promise.all([
         roomAPI.getRooms(),
         contactAPI.getContacts(),
         contactAPI.getRequests(),
-        storyAPI.getStories()
+        storyAPI.getStories(),
+        callAPI.getCalls()
       ]);
 
       const fetchedChannels = roomsRes.data.channels || [];
@@ -57,6 +59,7 @@ function ChatDashboard() {
       setPendingRequests(requestsRes.data.incoming || []);
       setMyStories(storiesRes.data.myStories || []);
       setContactStories(storiesRes.data.contactStories || []);
+      setCalls(callsRes.data.calls || []);
 
       // On desktop, default select first direct room if exists
       if (window.innerWidth >= 768 && !activeRoom) {
@@ -247,6 +250,10 @@ function ChatDashboard() {
       );
     };
 
+    const handleCallLogged = (loggedCall) => {
+      setCalls((prev) => [loggedCall, ...prev.filter((c) => c.id !== loggedCall.id)]);
+    };
+
     const handleMessageDeleted = ({ messageId }) => {
       setMessages((prev) => prev.filter((m) => Number(m.id) !== Number(messageId)));
     };
@@ -270,6 +277,7 @@ function ChatDashboard() {
     socket.on('call_rejected', handleCallRejected);
     socket.on('call_ended', handleCallEnded);
     socket.on('call_user_offline', handleCallUserOffline);
+    socket.on('call_logged', handleCallLogged);
     socket.on('user_profile_updated', handleUserProfileUpdated);
 
     return () => {
@@ -286,6 +294,7 @@ function ChatDashboard() {
       socket.off('call_rejected', handleCallRejected);
       socket.off('call_ended', handleCallEnded);
       socket.off('call_user_offline', handleCallUserOffline);
+      socket.off('call_logged', handleCallLogged);
       socket.off('user_profile_updated', handleUserProfileUpdated);
     };
   }, [socket, activeRoom?.id, user?.id]);
@@ -406,23 +415,47 @@ function ChatDashboard() {
   };
 
   // Calling Handlers
-  const handleStartCall = (targetUser, callType) => {
+  const handleStartCall = (targetUser, callType = 'audio') => {
+    const id = targetUser.id || targetUser.targetUserId;
+    const username = targetUser.username || targetUser.targetUserName;
+    const avatar = targetUser.avatar_url || targetUser.targetUserAvatar;
+    const type = targetUser.callType || callType || 'audio';
+
     setCallState({
       isIncoming: false,
-      targetUserId: targetUser.id,
-      targetUserName: targetUser.username,
-      targetUserAvatar: targetUser.avatar_url,
-      callType,
+      targetUserId: id,
+      targetUserName: username,
+      targetUserAvatar: avatar,
+      callType: type,
       isConnected: false
     });
 
     if (socket) {
       socket.emit('start_call', {
-        targetUserId: targetUser.id,
-        callType,
+        targetUserId: id,
+        callType: type,
         callerName: user.username,
         callerAvatar: user.avatar_url
       });
+    }
+  };
+
+  const handleDeleteCall = async (callId) => {
+    setCalls((prev) => prev.filter((c) => c.id !== callId));
+    try {
+      await callAPI.deleteCall(callId);
+    } catch (err) {
+      console.error('Failed to delete call log:', err);
+    }
+  };
+
+  const handleClearCalls = async () => {
+    if (!window.confirm('Are you sure you want to clear your call history?')) return;
+    setCalls([]);
+    try {
+      await callAPI.clearCalls();
+    } catch (err) {
+      console.error('Failed to clear call history:', err);
     }
   };
 
@@ -486,6 +519,10 @@ function ChatDashboard() {
               pendingRequests={pendingRequests}
               myStories={myStories}
               contactStories={contactStories}
+              calls={calls}
+              onDeleteCall={handleDeleteCall}
+              onClearCalls={handleClearCalls}
+              onStartCall={handleStartCall}
               activeRoom={activeRoom}
               onSelectRoom={handleSelectRoom}
               onStartDirectMessage={handleStartDirectMessage}
