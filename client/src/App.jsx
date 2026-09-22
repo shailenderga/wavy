@@ -236,23 +236,30 @@ function ChatDashboard() {
     };
 
     const handleStoryDeleted = ({ storyId }) => {
-      setMyStories((prev) => prev.filter((s) => s.id !== storyId));
+      setMyStories((prev) => prev.filter((s) => Number(s.id) !== Number(storyId)));
       setContactStories((prev) =>
         prev
           .map((group) => ({
             ...group,
-            stories: group.stories.filter((s) => s.id !== storyId)
+            stories: group.stories.filter((s) => Number(s.id) !== Number(storyId))
           }))
           .filter((group) => group.stories.length > 0)
       );
     };
 
     const handleMessageDeleted = ({ messageId }) => {
-      setMessages((prev) => prev.filter((m) => m.id !== messageId));
+      setMessages((prev) => prev.filter((m) => Number(m.id) !== Number(messageId)));
+    };
+
+    const handleRoomMessagesCleared = ({ roomId }) => {
+      if (activeRoom && Number(activeRoom.id) === Number(roomId)) {
+        setMessages([]);
+      }
     };
 
     socket.on('new_message', handleNewMessage);
     socket.on('message_deleted', handleMessageDeleted);
+    socket.on('room_messages_cleared', handleRoomMessagesCleared);
     socket.on('contact_request_received', handleContactRequestReceived);
     socket.on('contact_request_updated', handleContactRequestUpdated);
     socket.on('new_story_posted', handleNewStoryPosted);
@@ -268,6 +275,7 @@ function ChatDashboard() {
     return () => {
       socket.off('new_message', handleNewMessage);
       socket.off('message_deleted', handleMessageDeleted);
+      socket.off('room_messages_cleared', handleRoomMessagesCleared);
       socket.off('contact_request_received', handleContactRequestReceived);
       socket.off('contact_request_updated', handleContactRequestUpdated);
       socket.off('new_story_posted', handleNewStoryPosted);
@@ -359,10 +367,21 @@ function ChatDashboard() {
     if (!window.confirm('Are you sure you want to delete this message?')) return;
     try {
       await messageAPI.deleteMessage(messageId);
-      setMessages((prev) => prev.filter((m) => m.id !== messageId));
+      setMessages((prev) => prev.filter((m) => Number(m.id) !== Number(messageId)));
     } catch (err) {
       console.error('Failed to delete message:', err);
       alert(err.response?.data?.error || 'Failed to delete message');
+    }
+  };
+
+  const handleClearChat = async (roomId) => {
+    if (!window.confirm('Are you sure you want to clear all messages in this chat? This cannot be undone.')) return;
+    try {
+      await messageAPI.clearRoomMessages(roomId);
+      setMessages([]);
+    } catch (err) {
+      console.error('Failed to clear chat:', err);
+      alert(err.response?.data?.error || 'Failed to clear chat');
     }
   };
 
@@ -479,6 +498,7 @@ function ChatDashboard() {
               messages={messages}
               onSendMessage={handleSendMessage}
               onDeleteMessage={handleDeleteMessage}
+              onClearChat={handleClearChat}
               onBack={handleBackToChatList}
               onViewProfile={handleViewProfile}
               onStartCall={handleStartCall}

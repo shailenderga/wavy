@@ -40,7 +40,7 @@ export default function MessageBubble({ message, isSelf, isGroup, onDeleteMessag
               e.stopPropagation();
               onDeleteMessage(message.id);
             }}
-            className="absolute -top-2.5 -right-2 p-1.5 bg-[#1c1c1e] hover:bg-rose-600 text-slate-300 hover:text-white rounded-full shadow-lg border border-white/20 opacity-0 group-hover:opacity-100 transition-all ios-tap z-10"
+            className="absolute -top-2.5 -right-2 p-1.5 bg-[#1c1c1e]/95 hover:bg-rose-600 text-slate-400 hover:text-white rounded-full shadow-lg border border-white/20 sm:opacity-0 sm:group-hover:opacity-100 transition-all ios-tap z-10"
             title="Delete message"
           >
             <Trash2 className="w-3 h-3" />

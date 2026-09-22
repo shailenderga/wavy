@@ -191,7 +191,7 @@ async function deleteStory(req, res) {
 
     const [storyRows] = await pool.query('SELECT id, user_id FROM stories WHERE id = ?', [storyId]);
     if (storyRows.length === 0) {
-      return res.status(404).json({ error: 'Story not found' });
+      return res.json({ success: true, message: 'Story already deleted' });
     }
 
     if (Number(storyRows[0].user_id) !== userId) {

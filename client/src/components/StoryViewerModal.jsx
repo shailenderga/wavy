@@ -23,25 +23,27 @@ export default function StoryViewerModal({ storyGroup, isOpen, onClose, onStoryD
   const [loadingViewers, setLoadingViewers] = useState(false);
   const [showViewersSheet, setShowViewersSheet] = useState(false);
 
+  const [storiesList, setStoriesList] = useState([]);
   const timerRef = useRef(null);
   const videoRef = useRef(null);
   const viewedStoryIdsRef = useRef(new Set());
 
-  const stories = storyGroup?.stories || (storyGroup?.id ? [storyGroup] : []);
-  const currentStory = stories[currentIndex];
+  useEffect(() => {
+    const list = storyGroup?.stories || (storyGroup?.id ? [storyGroup] : []);
+    setStoriesList(list);
+    setCurrentIndex(0);
+    setProgress(0);
+    setShowViewersSheet(false);
+    setViewers([]);
+  }, [storyGroup]);
+
+  const currentStory = storiesList[currentIndex];
 
   const isOwner =
     user &&
     (Number(storyGroup?.userId) === Number(user.id) ||
       Number(currentStory?.user_id) === Number(user.id) ||
       storyGroup?.username === 'My Status');
-
-  useEffect(() => {
-    setCurrentIndex(0);
-    setProgress(0);
-    setShowViewersSheet(false);
-    setViewers([]);
-  }, [storyGroup]);
 
   // When viewing a contact's story, record view once
   useEffect(() => {
@@ -101,7 +103,7 @@ export default function StoryViewerModal({ storyGroup, isOpen, onClose, onStoryD
   }, [isOpen, currentIndex, currentStory?.id, currentStory?.media_type, showViewersSheet]);
 
   const handleNext = () => {
-    if (currentIndex < stories.length - 1) {
+    if (currentIndex < storiesList.length - 1) {
       setCurrentIndex((prev) => prev + 1);
       setProgress(0);
       setShowViewersSheet(false);
@@ -133,15 +135,20 @@ export default function StoryViewerModal({ storyGroup, isOpen, onClose, onStoryD
     if (!currentStory?.id) return;
     if (!window.confirm('Are you sure you want to delete this status update?')) return;
 
+    const deletedId = currentStory.id;
     try {
-      await storyAPI.deleteStory(currentStory.id);
-      if (onStoryDeleted) onStoryDeleted(currentStory.id);
-      if (stories.length > 1) {
-        if (currentIndex >= stories.length - 1) {
-          setCurrentIndex((prev) => Math.max(0, prev - 1));
-        }
-      } else {
+      await storyAPI.deleteStory(deletedId);
+      if (onStoryDeleted) onStoryDeleted(deletedId);
+
+      const nextList = storiesList.filter((s) => Number(s.id) !== Number(deletedId));
+      if (nextList.length === 0) {
         onClose();
+      } else {
+        setStoriesList(nextList);
+        setCurrentIndex((prev) => Math.min(prev, nextList.length - 1));
+        setProgress(0);
+        setShowViewersSheet(false);
+        setViewers([]);
       }
     } catch (err) {
       console.error('Failed to delete story:', err);
@@ -173,7 +180,7 @@ export default function StoryViewerModal({ storyGroup, isOpen, onClose, onStoryD
       >
         {/* Top Progress Bars (One for each story) */}
         <div className="flex gap-1.5 w-full z-20">
-          {stories.map((s, idx) => (
+          {storiesList.map((s, idx) => (
             <div
               key={s.id}
               className="flex-1 h-1 bg-white/30 rounded-full overflow-hidden"

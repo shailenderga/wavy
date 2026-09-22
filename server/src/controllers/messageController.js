@@ -86,8 +86,8 @@ async function sendMessage(req, res) {
 
 async function deleteMessage(req, res) {
   try {
-    const { messageId } = req.params;
-    const userId = req.user.id;
+    const messageId = Number(req.params.messageId);
+    const userId = Number(req.user.id);
     const pool = getPool();
 
     const [msgRows] = await pool.query(
@@ -96,11 +96,12 @@ async function deleteMessage(req, res) {
     );
 
     if (msgRows.length === 0) {
-      return res.status(404).json({ error: 'Message not found' });
+      // Message already deleted
+      return res.json({ success: true, messageId });
     }
 
     const message = msgRows[0];
-    if (message.sender_id !== userId) {
+    if (Number(message.sender_id) !== userId) {
       return res.status(403).json({ error: 'You can only delete your own messages' });
     }
 
@@ -117,12 +118,43 @@ async function deleteMessage(req, res) {
     return res.json({ success: true, messageId: parseInt(messageId, 10) });
   } catch (err) {
     console.error('deleteMessage error:', err);
-    return res.status(500).json({ error: 'Failed to delete message' });
+    return res.status(500).json({ error: 'Failed to delete message: ' + err.message });
+  }
+}
+
+async function clearRoomMessages(req, res) {
+  try {
+    const roomId = Number(req.params.roomId);
+    const userId = Number(req.user.id);
+    const pool = getPool();
+
+    // Verify membership
+    const [members] = await pool.query(
+      'SELECT user_id FROM room_members WHERE room_id = ? AND user_id = ?',
+      [roomId, userId]
+    );
+
+    if (members.length === 0) {
+      return res.status(403).json({ error: 'You are not a member of this chat' });
+    }
+
+    await pool.query('DELETE FROM messages WHERE room_id = ?', [roomId]);
+
+    const io = req.app.get('io');
+    if (io) {
+      io.to(`room_${roomId}`).emit('room_messages_cleared', { roomId });
+    }
+
+    return res.json({ success: true, roomId, message: 'Chat cleared successfully' });
+  } catch (err) {
+    console.error('clearRoomMessages error:', err);
+    return res.status(500).json({ error: 'Failed to clear chat: ' + err.message });
   }
 }
 
 module.exports = {
   getRoomMessages,
   sendMessage,
-  deleteMessage
+  deleteMessage,
+  clearRoomMessages
 };

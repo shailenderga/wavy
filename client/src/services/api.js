@@ -39,6 +39,7 @@ export const messageAPI = {
   getRoomMessages: (roomId) => api.get(`/messages/${roomId}`),
   sendMessage: (roomId, content) => api.post(`/messages/${roomId}`, { content }),
   deleteMessage: (messageId) => api.delete(`/messages/${messageId}`),
+  clearRoomMessages: (roomId) => api.delete(`/messages/room/${roomId}/clear`),
 };
 
 export const contactAPI = {

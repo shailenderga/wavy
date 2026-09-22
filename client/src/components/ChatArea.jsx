@@ -16,7 +16,8 @@ import {
   Phone,
   Video,
   X,
-  Square
+  Square,
+  Trash2
 } from 'lucide-react';
 
 const EMOJI_CATEGORIES = [
@@ -103,6 +104,7 @@ export default function ChatArea({
   messages,
   onSendMessage,
   onDeleteMessage,
+  onClearChat,
   onBack,
   onViewProfile,
   onStartCall
@@ -111,6 +113,7 @@ export default function ChatArea({
   const { socket, onlineUserIds } = useSocket();
   const [inputText, setInputText] = useState('');
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
   const [activeEmojiTab, setActiveEmojiTab] = useState(0);
   const [typingUsers, setTypingUsers] = useState(new Set());
   const [isRecording, setIsRecording] = useState(false);
@@ -383,6 +386,51 @@ export default function ChatArea({
           <button className="p-2 hover:text-wa-text hover:bg-white/10 rounded-full transition ios-tap" title="Search in chat">
             <Search className="w-5 h-5" />
           </button>
+
+          {/* 3-dots More Options Menu */}
+          <div className="relative">
+            <button
+              onClick={() => setShowMenu(!showMenu)}
+              className="p-2 hover:text-wa-text hover:bg-white/10 rounded-full transition ios-tap"
+              title="More options"
+            >
+              <MoreVertical className="w-5 h-5" />
+            </button>
+
+            {showMenu && (
+              <>
+                <div
+                  className="fixed inset-0 z-30"
+                  onClick={() => setShowMenu(false)}
+                />
+                <div className="absolute right-0 mt-2 w-48 bg-slate-900/95 backdrop-blur-2xl border border-white/15 rounded-2xl shadow-2xl py-1.5 z-40 animate-fadeIn">
+                  {isDirect && (
+                    <button
+                      onClick={() => {
+                        setShowMenu(false);
+                        if (onViewProfile && otherUser) onViewProfile(otherUser);
+                      }}
+                      className="w-full text-left px-4 py-2.5 text-xs font-medium text-slate-200 hover:bg-white/10 flex items-center space-x-2 transition"
+                    >
+                      <span>View Profile</span>
+                    </button>
+                  )}
+                  {onClearChat && (
+                    <button
+                      onClick={() => {
+                        setShowMenu(false);
+                        onClearChat(activeRoom.id);
+                      }}
+                      className="w-full text-left px-4 py-2.5 text-xs font-medium text-rose-400 hover:bg-rose-500/20 flex items-center space-x-2 transition"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span>Clear Chat</span>
+                    </button>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </header>
 
@@ -398,7 +446,7 @@ export default function ChatArea({
           <MessageBubble
             key={msg.id}
             message={msg}
-            isSelf={msg.sender_id === user?.id}
+            isSelf={Number(msg.sender_id) === Number(user?.id)}
             isGroup={!isDirect}
             onDeleteMessage={onDeleteMessage}
           />
