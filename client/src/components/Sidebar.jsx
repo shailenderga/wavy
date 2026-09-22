@@ -72,7 +72,7 @@ export default function Sidebar({
   return (
     <aside className="w-full md:w-[380px] lg:w-[420px] h-full ios-glass border-r border-white/10 flex flex-col flex-shrink-0 select-none">
       {/* iOS Wavy Header */}
-      <header className="h-16 ios-header-glass px-4 flex items-center justify-between flex-shrink-0">
+      <header className="relative z-40 h-16 ios-header-glass px-4 flex items-center justify-between flex-shrink-0">
         <div className="flex items-center space-x-3">
           <div
             onClick={() => onOpenEditProfile && onOpenEditProfile()}
@@ -132,46 +132,52 @@ export default function Sidebar({
             </button>
 
             {showMenu && (
-              <div className="absolute right-0 top-11 w-44 bg-slate-900/95 backdrop-blur-2xl border border-white/15 rounded-2xl shadow-2xl py-1.5 z-50 text-sm">
-                <button
-                  onClick={() => {
-                    if (onOpenEditProfile) onOpenEditProfile();
-                    setShowMenu(false);
-                  }}
-                  className="w-full px-4 py-2 text-left text-wa-text hover:bg-white/10 flex items-center space-x-2 transition ios-tap"
-                >
-                  <User className="w-4 h-4 text-wa-green" />
-                  <span>Profile & DP</span>
-                </button>
-                <button
-                  onClick={() => {
-                    onCreateStory();
-                    setShowMenu(false);
-                  }}
-                  className="w-full px-4 py-2 text-left text-wa-text hover:bg-white/10 flex items-center space-x-2 transition ios-tap"
-                >
-                  <CircleDot className="w-4 h-4 text-wa-green" />
-                  <span>Add Status</span>
-                </button>
-                <button
-                  onClick={() => {
-                    onOpenAddContact();
-                    setShowMenu(false);
-                  }}
-                  className="w-full px-4 py-2 text-left text-wa-text hover:bg-white/10 flex items-center space-x-2 transition ios-tap"
-                >
-                  <UserPlus className="w-4 h-4 text-wa-green" />
-                  <span>Find Contacts</span>
-                </button>
-                <div className="my-1 border-t border-white/10" />
-                <button
-                  onClick={logout}
-                  className="w-full px-4 py-2 text-left text-rose-400 hover:bg-white/10 flex items-center space-x-2 transition ios-tap"
-                >
-                  <LogOut className="w-4 h-4" />
-                  <span>Log out</span>
-                </button>
-              </div>
+              <>
+                <div
+                  className="fixed inset-0 z-40"
+                  onClick={() => setShowMenu(false)}
+                />
+                <div className="absolute right-0 top-11 w-48 bg-[#151c2e] border border-white/20 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.85)] py-1.5 z-50 text-sm animate-fadeIn">
+                  <button
+                    onClick={() => {
+                      if (onOpenEditProfile) onOpenEditProfile();
+                      setShowMenu(false);
+                    }}
+                    className="w-full px-4 py-2.5 text-left text-wa-text hover:bg-white/10 flex items-center space-x-2.5 transition ios-tap"
+                  >
+                    <User className="w-4 h-4 text-wa-green" />
+                    <span>Profile & DP</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      onCreateStory();
+                      setShowMenu(false);
+                    }}
+                    className="w-full px-4 py-2.5 text-left text-wa-text hover:bg-white/10 flex items-center space-x-2.5 transition ios-tap"
+                  >
+                    <CircleDot className="w-4 h-4 text-wa-green" />
+                    <span>Add Status</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      onOpenAddContact();
+                      setShowMenu(false);
+                    }}
+                    className="w-full px-4 py-2.5 text-left text-wa-text hover:bg-white/10 flex items-center space-x-2.5 transition ios-tap"
+                  >
+                    <UserPlus className="w-4 h-4 text-wa-green" />
+                    <span>Find Contacts</span>
+                  </button>
+                  <div className="my-1 border-t border-white/10" />
+                  <button
+                    onClick={logout}
+                    className="w-full px-4 py-2.5 text-left text-rose-400 hover:bg-white/10 flex items-center space-x-2.5 transition ios-tap"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    <span>Log out</span>
+                  </button>
+                </div>
+              </>
             )}
           </div>
         </div>

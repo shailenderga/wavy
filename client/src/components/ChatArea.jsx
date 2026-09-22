@@ -306,7 +306,7 @@ export default function ChatArea({
   return (
     <main className="flex-1 h-full flex flex-col ios-glass min-w-0 relative">
       {/* iOS Chat Header */}
-      <header className="h-16 ios-header-glass px-3 sm:px-4 flex items-center justify-between flex-shrink-0 z-10 shadow-sm">
+      <header className="relative z-30 h-16 ios-header-glass px-3 sm:px-4 flex items-center justify-between flex-shrink-0 shadow-sm">
         <div className="flex items-center space-x-2 sm:space-x-3 truncate">
           {/* Back button for Mobile */}
           <button
@@ -403,7 +403,7 @@ export default function ChatArea({
                   className="fixed inset-0 z-30"
                   onClick={() => setShowMenu(false)}
                 />
-                <div className="absolute right-0 mt-2 w-48 bg-slate-900/95 backdrop-blur-2xl border border-white/15 rounded-2xl shadow-2xl py-1.5 z-40 animate-fadeIn">
+                <div className="absolute right-0 mt-2 w-48 bg-[#151c2e] border border-white/20 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.85)] py-1.5 z-40 animate-fadeIn">
                   {isDirect && (
                     <button
                       onClick={() => {
