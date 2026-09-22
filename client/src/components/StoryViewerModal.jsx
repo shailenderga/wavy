@@ -138,26 +138,32 @@ export default function StoryViewerModal({ storyGroup, isOpen, onClose, onStoryD
     const deletedId = currentStory.id;
     try {
       await storyAPI.deleteStory(deletedId);
-      if (onStoryDeleted) onStoryDeleted(deletedId);
-
-      const nextList = storiesList.filter((s) => Number(s.id) !== Number(deletedId));
-      if (nextList.length === 0) {
-        onClose();
-      } else {
-        setStoriesList(nextList);
-        setCurrentIndex((prev) => Math.min(prev, nextList.length - 1));
-        setProgress(0);
-        setShowViewersSheet(false);
-        setViewers([]);
-      }
     } catch (err) {
-      console.error('Failed to delete story:', err);
-      const errMsg =
-        err.response?.data?.error ||
-        err.response?.data?.message ||
-        err.message ||
-        'Failed to delete status';
-      alert(errMsg);
+      if (err.response?.status === 404) {
+        console.log('Story already deleted on server');
+      } else {
+        console.error('Failed to delete story:', err);
+        const errMsg =
+          err.response?.data?.error ||
+          err.response?.data?.message ||
+          err.message ||
+          'Failed to delete status';
+        alert(errMsg);
+        return;
+      }
+    }
+
+    if (onStoryDeleted) onStoryDeleted(deletedId);
+
+    const nextList = storiesList.filter((s) => Number(s.id) !== Number(deletedId));
+    if (nextList.length === 0) {
+      onClose();
+    } else {
+      setStoriesList(nextList);
+      setCurrentIndex((prev) => Math.min(prev, nextList.length - 1));
+      setProgress(0);
+      setShowViewersSheet(false);
+      setViewers([]);
     }
   };
 

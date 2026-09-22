@@ -365,23 +365,31 @@ function ChatDashboard() {
 
   const handleDeleteMessage = async (messageId) => {
     if (!window.confirm('Are you sure you want to delete this message?')) return;
+    setMessages((prev) => prev.filter((m) => Number(m.id) !== Number(messageId)));
     try {
       await messageAPI.deleteMessage(messageId);
-      setMessages((prev) => prev.filter((m) => Number(m.id) !== Number(messageId)));
     } catch (err) {
-      console.error('Failed to delete message:', err);
-      alert(err.response?.data?.error || 'Failed to delete message');
+      if (err.response?.status === 404) {
+        console.log('Message already deleted on server');
+      } else {
+        console.error('Failed to delete message:', err);
+        alert(err.response?.data?.error || 'Failed to delete message');
+      }
     }
   };
 
   const handleClearChat = async (roomId) => {
     if (!window.confirm('Are you sure you want to clear all messages in this chat? This cannot be undone.')) return;
+    setMessages([]);
     try {
       await messageAPI.clearRoomMessages(roomId);
-      setMessages([]);
     } catch (err) {
-      console.error('Failed to clear chat:', err);
-      alert(err.response?.data?.error || 'Failed to clear chat');
+      if (err.response?.status === 404) {
+        console.log('Chat already cleared on server');
+      } else {
+        console.error('Failed to clear chat:', err);
+        alert(err.response?.data?.error || 'Failed to clear chat');
+      }
     }
   };
 
