@@ -218,6 +218,19 @@ function setupChatSocket(io) {
       }
     });
 
+    // WebRTC Signal relay (offer, answer, etc.)
+    socket.on('webrtc_signal', ({ targetUserId, signalData }) => {
+      const payload = { signalData, fromUserId: userId };
+      io.to(`user_${targetUserId}`).emit('webrtc_signal', payload);
+      const targetIdNum = Number(targetUserId);
+      const targetSockets = onlineUsers.get(targetIdNum) || onlineUsers.get(String(targetUserId));
+      if (targetSockets) {
+        targetSockets.forEach((sId) => {
+          io.to(sId).emit('webrtc_signal', payload);
+        });
+      }
+    });
+
     // ICE Candidate relay
     socket.on('ice_candidate', ({ targetUserId, candidate }) => {
       const payload = { candidate, fromUserId: userId };

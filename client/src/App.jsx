@@ -188,9 +188,9 @@ function ChatDashboard() {
       }
     };
 
-    const handleCallAccepted = () => {
-      console.log('Call was accepted by the other user');
-      setCallState((prev) => (prev ? { ...prev, isConnected: true } : null));
+    const handleCallAccepted = (data) => {
+      console.log('Call was accepted by the other user', data);
+      setCallState((prev) => (prev ? { ...prev, isConnected: true, signalData: data?.signalData } : null));
     };
 
     const handleCallRejected = () => {
@@ -558,6 +558,7 @@ function ChatDashboard() {
           {/* Audio & Video Calling Modal */}
           <CallModal
             callState={callState}
+            currentUser={user}
             onAccept={handleAcceptCall}
             onReject={handleRejectCall}
             onEndCall={handleEndCall}
