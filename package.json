@@ -4,6 +4,8 @@
   "private": true,
   "description": "Full-Stack Real-Time Chat App with React, MySQL, and Tailwind CSS",
   "scripts": {
+    "start": "npm --prefix server start",
+    "build": "npm --prefix server install && npm --prefix client install && npm --prefix client run build",
     "server": "npm --prefix server start",
     "server:dev": "npm --prefix server run dev",
     "client": "npm --prefix client run dev",

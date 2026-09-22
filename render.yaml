@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: wavy-server
+    env: node
+    plan: free
+    buildCommand: npm --prefix server install
+    startCommand: npm --prefix server start
+    envVars:
+      - key: NODE_ENV
+        value: production
