@@ -19,12 +19,17 @@ export function SocketProvider({ children }) {
     }
 
     const DEFAULT_PROD_URL = 'https://wavy-1tnr.onrender.com';
-    const isNativeApp = typeof window !== 'undefined' && 
-      (window.location.protocol === 'capacitor:' || window.location.protocol === 'file:' || !window.location.host);
+    const envSocketUrl = import.meta.env.VITE_SOCKET_URL;
+    const envApiUrl = import.meta.env.VITE_API_URL;
 
-    const socketURL = import.meta.env.VITE_SOCKET_URL || 
-      (import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace(/\/api\/?$/, '') : 
-        (isNativeApp ? DEFAULT_PROD_URL : '/'));
+    let socketURL = DEFAULT_PROD_URL;
+    if (envSocketUrl) {
+      socketURL = envSocketUrl;
+    } else if (envApiUrl) {
+      socketURL = envApiUrl.replace(/\/api\/?$/, '');
+    } else if (import.meta.env.DEV && typeof window !== 'undefined' && window.location.hostname === 'localhost' && window.location.port === '5173') {
+      socketURL = '/';
+    }
 
     const newSocket = io(socketURL, {
       auth: { token },

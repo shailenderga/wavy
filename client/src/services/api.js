@@ -1,20 +1,37 @@
 import axios from 'axios';
+import { Capacitor } from '@capacitor/core';
 
 const envApiUrl = import.meta.env.VITE_API_URL;
 const DEFAULT_PROD_URL = 'https://wavy-1tnr.onrender.com';
 
-const isNativeApp = typeof window !== 'undefined' && 
-  (window.location.protocol === 'capacitor:' || window.location.protocol === 'file:' || !window.location.host);
+export const isNativePlatform = () => {
+  if (typeof window === 'undefined') return false;
+  try {
+    if (Capacitor.isNativePlatform()) return true;
+    if (Capacitor.getPlatform() === 'android' || Capacitor.getPlatform() === 'ios') return true;
+    if (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) return true;
+  } catch (e) {
+    // ignore
+  }
+  if (window.location.hostname === 'localhost' && window.location.protocol === 'https:') return true;
+  if (window.location.protocol === 'capacitor:' || window.location.protocol === 'file:') return true;
+  return false;
+};
 
-let baseURL = '/api';
+// If VITE_API_URL is explicitly set, use it.
+// If running in local Vite dev server with proxy (localhost:5173), use '/api'.
+// In all other environments (Native Android app, deployed app, etc.), default to live production backend!
+let baseURL = `${DEFAULT_PROD_URL}/api`;
+
 if (envApiUrl) {
   baseURL = envApiUrl.endsWith('/api') ? envApiUrl : `${envApiUrl.replace(/\/+$/, '')}/api`;
-} else if (isNativeApp) {
-  baseURL = `${DEFAULT_PROD_URL}/api`;
+} else if (import.meta.env.DEV && typeof window !== 'undefined' && window.location.hostname === 'localhost' && window.location.port === '5173') {
+  baseURL = '/api';
 }
 
 const api = axios.create({
   baseURL,
+  timeout: 30000,
 });
 
 api.interceptors.request.use((config) => {
