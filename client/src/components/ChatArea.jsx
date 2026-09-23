@@ -125,6 +125,7 @@ export default function ChatArea({
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
   const recordTimerRef = useRef(null);
+  const lastTypingTimeRef = useRef(0);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -164,12 +165,17 @@ export default function ChatArea({
     setInputText(e.target.value);
 
     if (socket && activeRoom) {
-      socket.emit('typing', { roomId: activeRoom.id, isTyping: true });
+      const now = Date.now();
+      if (now - lastTypingTimeRef.current > 2500) {
+        lastTypingTimeRef.current = now;
+        socket.emit('typing', { roomId: activeRoom.id, isTyping: true });
+      }
 
       if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
       typingTimeoutRef.current = setTimeout(() => {
         socket.emit('typing', { roomId: activeRoom.id, isTyping: false });
-      }, 1500);
+        lastTypingTimeRef.current = 0;
+      }, 2000);
     }
   };
 
@@ -178,6 +184,8 @@ export default function ChatArea({
     if (!inputText.trim()) return;
 
     if (socket && activeRoom) {
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+      lastTypingTimeRef.current = 0;
       socket.emit('typing', { roomId: activeRoom.id, isTyping: false });
     }
 

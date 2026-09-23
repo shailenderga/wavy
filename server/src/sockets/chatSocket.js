@@ -2,6 +2,59 @@ const jwt = require('jsonwebtoken');
 const { getPool } = require('../config/db');
 
 const onlineUsers = new Map(); // userId -> Set of socketIds
+const roomMetaCache = new Map(); // roomId -> { id, name, type, members }
+const userProfileCache = new Map(); // userId -> { id, username, full_name, avatar_url }
+
+async function getRoomMeta(pool, roomId) {
+  const rId = Number(roomId);
+  if (roomMetaCache.has(rId)) {
+    return roomMetaCache.get(rId);
+  }
+
+  const [roomRows] = await pool.query('SELECT id, name, type FROM rooms WHERE id = ?', [rId]);
+  if (roomRows.length === 0) return null;
+
+  const [memberRows] = await pool.query(
+    `SELECT rm.user_id, u.username, u.full_name 
+     FROM room_members rm 
+     JOIN users u ON rm.user_id = u.id 
+     WHERE rm.room_id = ?`,
+    [rId]
+  );
+
+  const meta = {
+    id: roomRows[0].id,
+    name: roomRows[0].name,
+    type: roomRows[0].type,
+    members: memberRows
+  };
+  roomMetaCache.set(rId, meta);
+  return meta;
+}
+
+async function getUserProfile(pool, userId, defaultUser) {
+  const uId = Number(userId);
+  if (userProfileCache.has(uId)) {
+    return userProfileCache.get(uId);
+  }
+
+  try {
+    const [rows] = await pool.query('SELECT id, username, full_name, avatar_url FROM users WHERE id = ?', [uId]);
+    if (rows.length > 0) {
+      userProfileCache.set(uId, rows[0]);
+      return rows[0];
+    }
+  } catch (err) {
+    console.warn('Error fetching user profile for cache:', err.message);
+  }
+
+  return {
+    id: uId,
+    username: defaultUser?.username || 'User',
+    full_name: defaultUser?.full_name || defaultUser?.username || 'User',
+    avatar_url: defaultUser?.avatar_url || null
+  };
+}
 
 function setupChatSocket(io) {
   // Socket Auth Middleware
@@ -64,8 +117,8 @@ function setupChatSocket(io) {
       });
     });
 
-    // Send Message (Supports Text, Photo, and Voice Note Audio)
-    socket.on('send_message', async ({ roomId, content, messageType, mediaUrl }, callback) => {
+    // Send Message (Ultra-fast 0-overhead single query processing)
+    socket.on('send_message', async ({ roomId, content, messageType, mediaUrl, tempId }, callback) => {
       const type = ['image', 'audio'].includes(messageType) ? messageType : 'text';
       const textContent = (content || (type === 'image' ? 'Photo' : type === 'audio' ? 'Voice note' : '')).trim();
 
@@ -77,49 +130,50 @@ function setupChatSocket(io) {
       try {
         const pool = getPool();
 
-        // 1. Get sender name
-        const [senderRows] = await pool.query('SELECT username, full_name FROM users WHERE id = ?', [userId]);
-        const senderName = senderRows[0]?.username || username;
+        // 1. Get sender profile (In-memory cached)
+        const senderProfile = await getUserProfile(pool, userId, socket.user);
+        const senderName = senderProfile.username || username;
+        const senderAvatar = senderProfile.avatar_url || null;
 
-        // 2. Check room type and get receiver (if direct message)
-        const [roomRows] = await pool.query('SELECT id, name, type FROM rooms WHERE id = ?', [roomId]);
+        // 2. Get room metadata (In-memory cached)
+        const roomMeta = await getRoomMeta(pool, roomId);
         let receiverId = null;
         let receiverName = null;
 
-        if (roomRows.length > 0 && roomRows[0].type === 'direct') {
-          const [memberRows] = await pool.query(
-            `SELECT rm.user_id, u.username 
-             FROM room_members rm 
-             JOIN users u ON rm.user_id = u.id 
-             WHERE rm.room_id = ? AND rm.user_id != ? 
-             LIMIT 1`,
-            [roomId, userId]
-          );
-          if (memberRows.length > 0) {
-            receiverId = memberRows[0].user_id;
-            receiverName = memberRows[0].username;
+        if (roomMeta) {
+          if (roomMeta.type === 'direct') {
+            const otherMember = roomMeta.members.find((m) => Number(m.user_id) !== Number(userId));
+            if (otherMember) {
+              receiverId = otherMember.user_id;
+              receiverName = otherMember.username;
+            }
+          } else {
+            receiverName = `#${roomMeta.name}`;
           }
-        } else if (roomRows.length > 0) {
-          receiverName = `#${roomRows[0].name}`;
         }
 
+        // 3. Single INSERT query
         const [result] = await pool.query(
           'INSERT INTO messages (room_id, sender_id, sender_name, receiver_id, receiver_name, content, message_type, media_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
           [roomId, userId, senderName, receiverId, receiverName, textContent, type, mediaUrl || null]
         );
 
-        const [rows] = await pool.query(
-          `SELECT m.id, m.room_id, m.sender_id, m.sender_name, m.receiver_id, m.receiver_name, m.content, m.message_type, m.media_url, m.created_at,
-                  u.username AS sender_name, u.avatar_url AS sender_avatar
-           FROM messages m
-           JOIN users u ON m.sender_id = u.id
-           WHERE m.id = ?`,
-          [result.insertId]
-        );
+        const newMessage = {
+          id: result.insertId,
+          room_id: Number(roomId),
+          sender_id: userId,
+          sender_name: senderName,
+          sender_avatar: senderAvatar,
+          receiver_id: receiverId,
+          receiver_name: receiverName,
+          content: textContent,
+          message_type: type,
+          media_url: mediaUrl || null,
+          created_at: new Date().toISOString(),
+          tempId: tempId || null
+        };
 
-        const newMessage = rows[0];
-
-        // Broadcast to everyone in the room
+        // Broadcast to everyone in the room immediately
         io.to(`room_${roomId}`).emit('new_message', newMessage);
 
         if (callback) callback({ success: true, message: newMessage });

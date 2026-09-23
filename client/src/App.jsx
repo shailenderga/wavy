@@ -116,9 +116,34 @@ function ChatDashboard() {
     if (!socket || !user) return;
 
     const handleNewMessage = (newMsg) => {
-      if (activeRoom && newMsg.room_id === activeRoom.id) {
+      if (activeRoom && Number(newMsg.room_id) === Number(activeRoom.id)) {
         setMessages((prev) => {
+          // If message already exists by real id, ignore duplicate
           if (prev.some((m) => m.id === newMsg.id)) return prev;
+
+          // If this matches an optimistic message by tempId, update in-place
+          if (newMsg.tempId) {
+            const tempIdx = prev.findIndex((m) => m.id === newMsg.tempId);
+            if (tempIdx !== -1) {
+              const updated = [...prev];
+              updated[tempIdx] = { ...newMsg, isOptimistic: false };
+              return updated;
+            }
+          }
+
+          // Fallback: match by sender, content, and isOptimistic flag
+          const optIdx = prev.findIndex(
+            (m) =>
+              m.isOptimistic &&
+              Number(m.sender_id) === Number(newMsg.sender_id) &&
+              m.content === newMsg.content
+          );
+          if (optIdx !== -1) {
+            const updated = [...prev];
+            updated[optIdx] = { ...newMsg, isOptimistic: false };
+            return updated;
+          }
+
           return [...prev, newMsg];
         });
       }
@@ -365,9 +390,33 @@ function ChatDashboard() {
       ? { roomId: activeRoom.id, content: messageData, messageType: 'text' }
       : { roomId: activeRoom.id, ...messageData };
 
-    socket.emit('send_message', payload, (res) => {
+    const tempId = `temp_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+
+    // Optimistic UI: display immediately on screen with 0ms delay!
+    const optimisticMessage = {
+      id: tempId,
+      room_id: activeRoom.id,
+      sender_id: user.id,
+      sender_name: user.username,
+      sender_avatar: user.avatar_url,
+      content: payload.content,
+      message_type: payload.messageType || 'text',
+      media_url: payload.mediaUrl || null,
+      created_at: new Date().toISOString(),
+      isOptimistic: true
+    };
+
+    setMessages((prev) => [...prev, optimisticMessage]);
+
+    socket.emit('send_message', { ...payload, tempId }, (res) => {
       if (res?.error) {
         console.error('Send error:', res.error);
+        setMessages((prev) => prev.filter((m) => m.id !== tempId));
+        alert('Failed to send message: ' + res.error);
+      } else if (res?.message) {
+        setMessages((prev) =>
+          prev.map((m) => (m.id === tempId ? { ...res.message, isOptimistic: false } : m))
+        );
       }
     });
   };

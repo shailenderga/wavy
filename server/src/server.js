@@ -30,7 +30,8 @@ const io = new Server(server, {
     origin: (origin, callback) => callback(null, true),
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true
-  }
+  },
+  transports: ['websocket', 'polling']
 });
 
 app.set('io', io);

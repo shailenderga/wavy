@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { CheckCheck, Play, Pause, Mic, Trash2 } from 'lucide-react';
+import { CheckCheck, Clock, Play, Pause, Mic, Trash2 } from 'lucide-react';
 
 export default function MessageBubble({ message, isSelf, isGroup, onDeleteMessage }) {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -116,7 +116,11 @@ export default function MessageBubble({ message, isSelf, isGroup, onDeleteMessag
             {time}
           </span>
           {isSelf && (
-            <CheckCheck className="w-3.5 h-3.5 text-wa-tick flex-shrink-0" />
+            message.isOptimistic ? (
+              <Clock className="w-3 h-3 text-white/70 animate-pulse flex-shrink-0" />
+            ) : (
+              <CheckCheck className="w-3.5 h-3.5 text-wa-tick flex-shrink-0" />
+            )
           )}
         </div>
       </div>

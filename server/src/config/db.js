@@ -132,7 +132,9 @@ async function initializeDatabase() {
       waitForConnections: true,
       connectionLimit: 10,
       queueLimit: 0,
-      connectTimeout: 20000
+      connectTimeout: 20000,
+      enableKeepAlive: true,
+      keepAliveInitialDelay: 10000
     });
 
     return pool;
@@ -149,7 +151,10 @@ function getPool() {
       database: dbName,
       waitForConnections: true,
       connectionLimit: 10,
-      queueLimit: 0
+      queueLimit: 0,
+      connectTimeout: 20000,
+      enableKeepAlive: true,
+      keepAliveInitialDelay: 10000
     });
   }
   return pool;
