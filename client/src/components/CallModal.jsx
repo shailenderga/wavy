@@ -6,8 +6,10 @@ import {
   VideoOff,
   Mic,
   MicOff,
-  Volume2
+  Volume2,
+  VolumeX
 } from 'lucide-react';
+import { audioRouteService } from '../services/audioRouteService';
 
 const ICE_SERVERS = {
   iceServers: [
@@ -33,6 +35,7 @@ export default function CallModal({
   const [callStatus, setCallStatus] = useState('connecting'); // 'calling', 'incoming', 'connected'
   const [localStream, setLocalStream] = useState(null);
   const [remoteStream, setRemoteStream] = useState(null);
+  const [isSpeakerOn, setIsSpeakerOn] = useState(callState?.callType === 'video');
 
   const pcRef = useRef(null);
   const localStreamRef = useRef(null);
@@ -382,6 +385,7 @@ export default function CallModal({
         } catch (e) {}
         pcRef.current = null;
       }
+      audioRouteService.resetAudioMode();
       if (durationTimerRef.current) clearInterval(durationTimerRef.current);
       pendingCandidatesRef.current = [];
       pendingOfferRef.current = null;
@@ -428,6 +432,16 @@ export default function CallModal({
       });
     }
   }, [remoteStream, callStatus, callType]);
+
+  // Synchronize remote audio volume and native speakerphone routing
+  useEffect(() => {
+    if (callStatus === 'connected') {
+      audioRouteService.setSpeakerphoneOn(isSpeakerOn);
+      if (remoteAudioRef.current) {
+        remoteAudioRef.current.volume = isSpeakerOn ? 1.0 : 0.45;
+      }
+    }
+  }, [callStatus, isSpeakerOn]);
 
   // Callee accepts the call
   const handleAcceptCall = async () => {
@@ -480,6 +494,7 @@ export default function CallModal({
 
   const handleRejectCall = () => {
     stopAllAudio();
+    audioRouteService.resetAudioMode();
     if (onReject) onReject();
   };
 
@@ -490,6 +505,15 @@ export default function CallModal({
       });
     }
     setIsMuted(!isMuted);
+  };
+
+  const handleToggleSpeaker = () => {
+    const nextSpeaker = !isSpeakerOn;
+    setIsSpeakerOn(nextSpeaker);
+    audioRouteService.setSpeakerphoneOn(nextSpeaker);
+    if (remoteAudioRef.current) {
+      remoteAudioRef.current.volume = nextSpeaker ? 1.0 : 0.45;
+    }
   };
 
   const handleToggleVideo = () => {
@@ -503,6 +527,7 @@ export default function CallModal({
 
   const handleEnd = () => {
     stopAllAudio();
+    audioRouteService.resetAudioMode();
     setLocalStream(null);
     setRemoteStream(null);
     if (localStreamRef.current) {
@@ -699,6 +724,19 @@ export default function CallModal({
               title="End Call"
             >
               <PhoneOff className="w-7 h-7" />
+            </button>
+
+            {/* Speaker / Earpiece Toggle Button */}
+            <button
+              onClick={handleToggleSpeaker}
+              className={`p-3.5 rounded-full transition shadow-lg flex items-center justify-center ${
+                isSpeakerOn
+                  ? 'bg-wa-green hover:bg-wa-greenDark text-white ring-2 ring-wa-green/40 shadow-emerald-500/20'
+                  : 'bg-white/20 hover:bg-white/30 text-white'
+              }`}
+              title={isSpeakerOn ? 'Speaker ON (Click for Earpiece)' : 'Earpiece Mode / Normal Call (Click for Speaker)'}
+            >
+              {isSpeakerOn ? <Volume2 className="w-6 h-6" /> : <VolumeX className="w-6 h-6" />}
             </button>
 
             {/* Video Toggle Button (for video calls) */}

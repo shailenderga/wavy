@@ -11,6 +11,7 @@ import StoryViewerModal from './components/StoryViewerModal';
 import CallModal from './components/CallModal';
 import EditProfileModal from './components/EditProfileModal';
 import { roomAPI, contactAPI, messageAPI, storyAPI, callAPI } from './services/api';
+import { initNotificationService, notifyNewMessage, notifyIncomingCall } from './services/notificationService';
 
 function ChatDashboard() {
   const { user, loading } = useAuth();
@@ -77,6 +78,7 @@ function ChatDashboard() {
   useEffect(() => {
     if (user) {
       loadInitialData();
+      initNotificationService();
     }
   }, [user, loadInitialData]);
 
@@ -116,6 +118,22 @@ function ChatDashboard() {
     if (!socket || !user) return;
 
     const handleNewMessage = (newMsg) => {
+      // If message is from another user, notify!
+      if (Number(newMsg.sender_id) !== Number(user.id)) {
+        const isCurrentActive = activeRoom && Number(newMsg.room_id) === Number(activeRoom.id);
+        const isPageVisible = typeof document !== 'undefined' && !document.hidden;
+
+        // Show notification if user is in a different chat OR app is minimized/hidden
+        if (!isCurrentActive || !isPageVisible) {
+          notifyNewMessage({
+            senderName: newMsg.sender_name,
+            content: newMsg.content,
+            roomId: newMsg.room_id,
+            avatar: newMsg.sender_avatar
+          });
+        }
+      }
+
       if (activeRoom && Number(newMsg.room_id) === Number(activeRoom.id)) {
         setMessages((prev) => {
           // If message already exists by real id, ignore duplicate
@@ -175,11 +193,6 @@ function ChatDashboard() {
       });
     };
 
-    // Request notification permission if available
-    if ('Notification' in window && Notification.permission === 'default') {
-      Notification.requestPermission().catch(() => {});
-    }
-
     // Calling Listeners
     const handleIncomingCall = (data) => {
       console.log('Incoming call received:', data);
@@ -193,27 +206,11 @@ function ChatDashboard() {
         isConnected: false
       });
 
-      // Browser Desktop Notification
-      if ('Notification' in window) {
-        if (Notification.permission === 'granted') {
-          try {
-            const notif = new Notification(`Wavy ${data.callType === 'video' ? 'Video' : 'Audio'} Call`, {
-              body: `${data.callerName} is calling you on Wavy Web`,
-              icon: data.callerAvatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=User',
-              tag: 'wavy-call',
-              requireInteraction: true
-            });
-            notif.onclick = () => {
-              window.focus();
-              notif.close();
-            };
-          } catch (err) {
-            console.warn('Desktop notification failed:', err);
-          }
-        } else if (Notification.permission === 'default') {
-          Notification.requestPermission();
-        }
-      }
+      notifyIncomingCall({
+        callerName: data.callerName,
+        callType: data.callType,
+        callerAvatar: data.callerAvatar
+      });
     };
 
     const handleCallAccepted = (data) => {
