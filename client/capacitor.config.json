@@ -1,0 +1,9 @@
+{
+  "appId": "com.wavy.chatapp",
+  "appName": "Wavy",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https",
+    "cleartext": true
+  }
+}

@@ -1,9 +1,16 @@
 import axios from 'axios';
 
 const envApiUrl = import.meta.env.VITE_API_URL;
+const DEFAULT_PROD_URL = 'https://wavy-1tnr.onrender.com';
+
+const isNativeApp = typeof window !== 'undefined' && 
+  (window.location.protocol === 'capacitor:' || window.location.protocol === 'file:' || !window.location.host);
+
 let baseURL = '/api';
 if (envApiUrl) {
   baseURL = envApiUrl.endsWith('/api') ? envApiUrl : `${envApiUrl.replace(/\/+$/, '')}/api`;
+} else if (isNativeApp) {
+  baseURL = `${DEFAULT_PROD_URL}/api`;
 }
 
 const api = axios.create({

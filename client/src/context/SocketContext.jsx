@@ -18,8 +18,13 @@ export function SocketProvider({ children }) {
       return;
     }
 
+    const DEFAULT_PROD_URL = 'https://wavy-1tnr.onrender.com';
+    const isNativeApp = typeof window !== 'undefined' && 
+      (window.location.protocol === 'capacitor:' || window.location.protocol === 'file:' || !window.location.host);
+
     const socketURL = import.meta.env.VITE_SOCKET_URL || 
-      (import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace(/\/api\/?$/, '') : '/');
+      (import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace(/\/api\/?$/, '') : 
+        (isNativeApp ? DEFAULT_PROD_URL : '/'));
 
     const newSocket = io(socketURL, {
       auth: { token },
